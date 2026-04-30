@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Credential Launcher</title>
+    <link rel="stylesheet" href="src/popup/popup.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <h1>Emfata7 Valnet</h1>
+        <div class="actions">
+          <button id="addSiteBtn" class="icon-btn" title="Add website">🌐</button>
+          <button id="openSettingsBtn" class="icon-btn" title="Settings">⚙️</button>
+        </div>
+      </header>
+      <section id="websiteList" class="site-list"></section>
+    </main>
+
+    <dialog id="siteDialog" class="modal">
+      <form id="siteForm" method="dialog" class="modal__content">
+        <h2 id="siteDialogTitle">Add website</h2>
+        <label>
+          Website URL
+          <input id="siteUrl" name="url" type="url" required placeholder="https://example.com" />
+        </label>
+        <label>
+          Website label
+          <input id="siteLabel" name="label" type="text" required placeholder="Example" />
+        </label>
+
+        <div class="credentials-header">
+          <h3>Credentials</h3>
+          <button id="addCredentialBtn" type="button">+ Add login</button>
+        </div>
+        <div id="credentialsContainer" class="credentials-container"></div>
+
+        <menu class="modal__actions">
+          <button value="cancel" type="button" id="cancelSiteDialog">Cancel</button>
+          <button value="confirm" type="submit" class="primary">Save</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <template id="credentialRowTemplate">
+      <div class="credential-row">
+        <input class="credential-name" type="text" placeholder="login label" required />
+        <input class="credential-username" type="text" placeholder="username/email" required />
+        <input class="credential-password" type="password" placeholder="password" required />
+        <button type="button" class="remove-credential">🗑️</button>
+      </div>
+    </template>
+
+    <script type="module" src="src/popup/popup-main.js"></script>
+  </body>
+</html>
