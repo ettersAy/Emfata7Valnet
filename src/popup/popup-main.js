@@ -41,17 +41,10 @@ await bootstrap();
 async function bootstrap() {
   const configured = await isMasterPasswordConfigured();
   vaultHint.textContent = configured
-<<<<<<< HEAD
-    ? "Enter your master password to unlock credentials."
-    : "Create a master password to encrypt your credentials.";
-
-  if (isUnlocked()) {
-=======
     ? "Enter your master key once per day."
     : "Create your master key to encrypt the vault.";
 
   if (await trySessionAutoUnlock()) {
->>>>>>> 1b3015f23ce4bb8d9c0e43a82115fb7339d51d53
     await loadAndRender();
     return;
   }
@@ -60,12 +53,6 @@ async function bootstrap() {
   vaultGate.hidden = false;
 }
 
-<<<<<<< HEAD
-async function onUnlock() {
-  const password = masterPasswordInput.value;
-  if (!password || password.length < 10) {
-    vaultMessage.textContent = "Use at least 10 characters.";
-=======
 async function trySessionAutoUnlock() {
   if (isUnlocked()) return true;
 
@@ -82,7 +69,6 @@ async function onUnlock() {
   const password = masterPasswordInput.value;
   if (!password || password.length < 4) {
     vaultMessage.textContent = "Use at least 4 characters.";
->>>>>>> 1b3015f23ce4bb8d9c0e43a82115fb7339d51d53
     return;
   }
 
@@ -90,14 +76,6 @@ async function onUnlock() {
   const success = configured ? await unlockMasterPassword(password) : await (setupMasterPassword(password).then(() => true));
 
   if (!success) {
-<<<<<<< HEAD
-    vaultMessage.textContent = "Invalid master password.";
-    return;
-  }
-
-  masterPasswordInput.value = "";
-  vaultMessage.textContent = "Unlocked.";
-=======
     vaultMessage.textContent = "Invalid master key.";
     return;
   }
@@ -107,7 +85,6 @@ async function onUnlock() {
 
   masterPasswordInput.value = "";
   vaultMessage.textContent = "Vault unlocked.";
->>>>>>> 1b3015f23ce4bb8d9c0e43a82115fb7339d51d53
   await loadAndRender();
 }
 
@@ -219,13 +196,14 @@ async function onListClick(event) {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id || !tab.url) return;
 
-<<<<<<< HEAD
-    if (new URL(tab.url).hostname !== new URL(website.url).hostname) {
-=======
     const normalized = normalizeUrlForOpen(website.url);
     if (!normalized || new URL(tab.url).hostname !== new URL(normalized).hostname) {
       listMessage.textContent = "Autofill blocked: host mismatch.";
->>>>>>> 1b3015f23ce4bb8d9c0e43a82115fb7339d51d53
+      return;
+    }
+
+    if (!credential.usernameEncrypted || !credential.passwordEncrypted) {
+      listMessage.textContent = "Missing encrypted credential data.";
       return;
     }
 

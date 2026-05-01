@@ -73,6 +73,9 @@ async function encryptWithKey(key, value) {
 }
 
 async function decryptWithKey(key, payload) {
+  if (!payload || !payload.iv || !payload.value) {
+    throw new Error("Invalid encrypted payload: missing iv or value.");
+  }
   const plain = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv: fromBase64(payload.iv) },
     key,
