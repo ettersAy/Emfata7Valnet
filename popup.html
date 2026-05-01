@@ -9,38 +9,43 @@
   <body>
     <main class="app">
       <header class="app__header">
-        <h1>Emfata7 Valnet</h1>
+        <div>
+          <h1>Vault</h1>
+          <p class="muted">Quick, secure credential launcher</p>
+        </div>
         <div class="actions">
-          <button id="addSiteBtn" class="icon-btn" title="Add website">🌐</button>
-          <button id="openSettingsBtn" class="icon-btn" title="Settings">⚙️</button>
+          <button id="addSiteBtn" class="icon-btn" title="Add">＋</button>
+          <button id="openSettingsBtn" class="icon-btn" title="Settings">⚙</button>
         </div>
       </header>
-      <section id="websiteList" class="site-list" hidden></section>
-      <section id="vaultGate" class="vault-gate">
-        <h2>Vault lock</h2>
-        <p id="vaultHint">Create a master password to encrypt your credentials.</p>
-        <input id="masterPassword" type="password" placeholder="Master password" />
-        <button id="unlockVaultBtn" class="primary" type="button">Unlock vault</button>
-        <p id="vaultMessage" aria-live="polite"></p>
+<<<<<<< HEAD
+      <section id="vaultGate" class="vault-gate card">
+        <h2>Locked</h2>
+        <p id="vaultHint"></p>
+        <input id="masterPassword" type="password" placeholder="Master key" />
+        <button id="unlockVaultBtn" class="primary" type="button">Unlock</button>
+        <p id="vaultMessage" aria-live="polite" class="muted"></p>
       </section>
 
+      <p id="listMessage" class="muted"></p>
+      <section id="websiteList" class="site-list" hidden></section>
     </main>
 
     <dialog id="siteDialog" class="modal">
       <form id="siteForm" method="dialog" class="modal__content">
         <h2 id="siteDialogTitle">Add website</h2>
         <label>
-          Website URL
-          <input id="siteUrl" name="url" type="url" required placeholder="https://example.com" />
+          Website / Alias
+          <input id="siteUrl" name="url" type="text" required placeholder="example.com or any note" />
         </label>
         <label>
-          Website label
-          <input id="siteLabel" name="label" type="text" required placeholder="Example" />
+          Label
+          <input id="siteLabel" name="label" type="text" required placeholder="Work account" />
         </label>
 
         <div class="credentials-header">
           <h3>Credentials</h3>
-          <button id="addCredentialBtn" type="button">+ Add login</button>
+          <button id="addCredentialBtn" type="button">+ Add</button>
         </div>
         <div id="credentialsContainer" class="credentials-container"></div>
 
@@ -56,7 +61,7 @@
         <input class="credential-name" type="text" placeholder="login label" required />
         <input class="credential-username" type="text" placeholder="username/email" required />
         <input class="credential-password" type="password" placeholder="password" required />
-        <button type="button" class="remove-credential">🗑️</button>
+        <button type="button" class="remove-credential">✕</button>
       </div>
     </template>
 
