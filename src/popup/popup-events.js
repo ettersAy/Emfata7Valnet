@@ -22,10 +22,10 @@ function wireEvents() {
   searchInput.addEventListener("input", onSearch);
 }
 
-function onSearch() {
+async function onSearch() {
   const { searchInput, siteList, entryCount } = dom;
   popupState.searchQuery = searchInput.value.trim().toLowerCase();
-  renderWebsites(filteredWebsites(), siteList);
+  await renderWebsites(filteredWebsites(), siteList);
   updateEntryCount(popupState.websites.length, filteredWebsites().length, entryCount);
 }
 
@@ -59,63 +59,84 @@ async function onListClick(event) {
   if (event.target.closest(".delete-site")) {
     popupState.websites = popupState.websites.filter((item) => item.id !== website.id);
     await saveWebsites(popupState.websites);
-    renderWebsites(filteredWebsites(), siteList);
+    await renderWebsites(filteredWebsites(), siteList);
     updateEntryCount(popupState.websites.length, filteredWebsites().length, entryCount);
     showToast(listMessage, t("deletedSuccess"), "success");
     return;
   }
 
-  // Credential chip — autofill
-  const chip = event.target.closest(".credential-chip");
-  if (chip) {
-    await handleCredentialChipClick(chip, website, event);
+  // Lock button — toggle password visibility
+  const lockBtn = event.target.closest(".cred-pair__lock");
+  if (lockBtn) {
+    await handleLockClick(lockBtn, website);
+    return;
+  }
+
+  // Fill button — autofill inputs (no website check)
+  const fillBtn = event.target.closest(".cred-pair__fill");
+  if (fillBtn) {
+    await handleFillClick(fillBtn, website);
+    return;
   }
 }
 
-async function handleCredentialChipClick(chip, website, clickEvent) {
-  const { listMessage } = dom;
-  const copyType = chip.dataset.copyType;
+/**
+ * Toggle password visibility for a credential.
+ */
+async function handleLockClick(lockBtn, website) {
+  const credId = lockBtn.dataset.credId;
+  const cred = (website.credentials || []).find(c => c.id === credId);
+  if (!cred || !cred.passwordEncrypted) {
+    return;
+  }
 
-  if (!website.usernameEncrypted || !website.passwordEncrypted) {
+  // Check if password is already revealed
+  const pair = lockBtn.closest(".cred-pair");
+  const existingReveal = pair.querySelector(".cred-pair__password-reveal");
+
+  if (existingReveal) {
+    // Hide password
+    existingReveal.remove();
+    lockBtn.textContent = "🔒";
+    lockBtn.title = t("showPasswordTitle");
+  } else {
+    // Decrypt and show password
+    try {
+      const plain = await decryptSecret(cred.passwordEncrypted);
+      const reveal = document.createElement("span");
+      reveal.className = "cred-pair__password-reveal";
+      reveal.textContent = plain;
+      reveal.title = plain;
+      pair.insertBefore(reveal, lockBtn.nextSibling);
+      lockBtn.textContent = "🔓";
+      lockBtn.title = t("hidePasswordTitle");
+    } catch {
+      // Decryption failed
+    }
+  }
+}
+
+/**
+ * Fill credentials into active tab (no website check).
+ */
+async function handleFillClick(fillBtn, website) {
+  const { listMessage } = dom;
+  const credId = fillBtn.dataset.credId;
+  const cred = (website.credentials || []).find(c => c.id === credId);
+  if (!cred || !cred.loginEncrypted || !cred.passwordEncrypted) {
     showToast(listMessage, t("encryptedDataMissing"), "warning");
     return;
   }
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-  // Alt+click = copy password
-  if (clickEvent.altKey && copyType === "password") {
-    const plain = await decryptSecret(website.passwordEncrypted);
-    await navigator.clipboard.writeText(plain);
-    showCopyIndicator(chip);
-    showToast(listMessage, t("copiedPassword"), "success");
-    return;
-  }
-
-  // Alt+click = copy username
-  if (clickEvent.altKey && copyType === "login") {
-    const plain = await decryptSecret(website.usernameEncrypted);
-    await navigator.clipboard.writeText(plain);
-    showCopyIndicator(chip);
-    showToast(listMessage, t("copiedUsername"), "success");
-    return;
-  }
-
-  // Normal click = autofill
-  if (!tab?.id || !tab.url) return;
-
-  const normalized = normalizeUrlForOpen(website.url);
-  if (!normalized || new URL(tab.url).hostname !== new URL(normalized).hostname) {
-    showToast(listMessage, t("hostMismatch"), "warning");
-    return;
-  }
+  if (!tab?.id) return;
 
   await chrome.tabs.sendMessage(tab.id, {
     type: "RUN_AUTOFILL",
     payload: {
       credential: {
-        username: await decryptSecret(website.usernameEncrypted),
-        password: await decryptSecret(website.passwordEncrypted)
+        username: await decryptSecret(cred.loginEncrypted),
+        password: await decryptSecret(cred.passwordEncrypted)
       },
       fieldKeywords: await getFieldKeywords()
     }
@@ -139,29 +160,13 @@ async function onListDblClick(event) {
     return;
   }
 
-  // Double-click on credential chip = copy
-  const chip = event.target.closest(".credential-chip");
-  if (chip) {
-    const row = event.target.closest(".site-row");
-    if (!row) return;
-    const website = popupState.websites.find((item) => item.id === row.dataset.websiteId);
-    if (!website) return;
-
-    const copyType = chip.dataset.copyType;
-    let plain = "";
-
-    if (copyType === "login" && website.usernameEncrypted) {
-      plain = await decryptSecret(website.usernameEncrypted);
-    } else if (copyType === "password" && website.passwordEncrypted) {
-      plain = await decryptSecret(website.passwordEncrypted);
-    }
-
-    if (plain) {
-      await navigator.clipboard.writeText(plain);
-      showCopyIndicator(chip);
-      const label = copyType === "login" ? t("copiedUsername") : t("copiedPassword");
-      showToast(listMessage, label, "success");
-    }
+  // Double-click on login text in credential pair = copy login
+  const loginSpan = event.target.closest(".cred-pair__login");
+  if (loginSpan) {
+    await navigator.clipboard.writeText(loginSpan.textContent);
+    showCopyIndicator(loginSpan);
+    showToast(listMessage, t("copiedUsername"), "success");
+    return;
   }
 }
 

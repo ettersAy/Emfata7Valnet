@@ -1,9 +1,10 @@
 import { createSiteRow, clearElement, createEmptyState } from "./popup-dom.js";
 import { t } from "../common/i18n.js";
+import { decryptSecret } from "../common/crypto.js";
 
 import { popupState } from "./popup-state.js";
 
-export function renderWebsites(websites, root) {
+export async function renderWebsites(websites, root) {
   clearElement(root);
 
   if (!websites.length) {
@@ -16,9 +17,27 @@ export function renderWebsites(websites, root) {
     return;
   }
 
-  websites.forEach((website, index) => {
-    root.appendChild(createSiteRow(website, index));
-  });
+  for (let index = 0; index < websites.length; index++) {
+    const website = websites[index];
+    // Pre-decrypt logins for display (non-hidden)
+    const decryptedCredentials = [];
+    for (const cred of (website.credentials || [])) {
+      let login = "";
+      if (cred.loginEncrypted) {
+        try {
+          login = await decryptSecret(cred.loginEncrypted);
+        } catch {
+          login = "••••••";
+        }
+      }
+      decryptedCredentials.push({
+        id: cred.id,
+        login,
+        passwordEncrypted: cred.passwordEncrypted
+      });
+    }
+    root.appendChild(createSiteRow(website, index, decryptedCredentials));
+  }
 }
 
 export function updateEntryCount(total, visible, countEl) {

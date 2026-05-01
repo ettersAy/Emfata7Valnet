@@ -437,63 +437,88 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   font-size: 14px;
 }
 
-/* ── Credential Chips ────────────────────────────────────── */
+/* ── Credential Pairs ────────────────────────────────────── */
 .cred-wrap {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
 }
 
-.credential-chip {
-  display: inline-flex;
+.cred-pair {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 14px 7px 12px;
+  gap: 6px;
+  padding: 6px 10px;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   background: var(--bg-input);
-  color: var(--text-primary);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
+  transition: border-color 0.2s;
+  flex-wrap: wrap;
 }
 
-.credential-chip::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), transparent);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.credential-chip:hover {
+.cred-pair:hover {
   border-color: var(--border-glow);
-  box-shadow: 0 0 14px rgba(99, 102, 241, 0.15);
-  transform: translateY(-1px);
 }
 
-.credential-chip:hover::after { opacity: 1; }
-
-.credential-chip:active { transform: scale(0.97); }
-
-.credential-chip .chip-label {
+.cred-pair__login {
+  flex: 1;
+  font-size: 12px;
   font-weight: 500;
-  max-width: 120px;
+  color: var(--text-primary);
+  direction: ltr;
+  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  cursor: copy;
+  user-select: all;
 }
 
-.credential-chip .chip-icon {
+.cred-pair__login:hover {
+  color: var(--accent-glow);
+}
+
+.cred-pair__password-reveal {
   font-size: 12px;
-  opacity: 0.6;
+  font-family: monospace;
+  color: var(--warning);
+  direction: ltr;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+  user-select: all;
 }
 
-.credential-chip .copy-indicator {
+.cred-pair__lock,
+.cred-pair__fill {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.cred-pair__lock:hover,
+.cred-pair__fill:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.cred-pair__lock:active,
+.cred-pair__fill:active {
+  transform: scale(0.95);
+}
+
+/* Copy indicator on login span */
+.cred-pair__login .copy-indicator {
   position: absolute;
   top: -18px;
   left: 50%;
@@ -507,9 +532,12 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   opacity: 0;
   transition: opacity 0.2s;
   pointer-events: none;
+  white-space: nowrap;
 }
 
-.credential-chip .copy-indicator.show { opacity: 1; }
+.cred-pair__login .copy-indicator.show { opacity: 1; }
+
+.cred-pair__login { position: relative; }
 
 /* Copy indicator on site title */
 .open-site .copy-indicator {
@@ -706,6 +734,63 @@ input:focus, textarea:focus {
 .modal__actions .primary {
   width: auto;
   padding: 10px 24px;
+}
+
+/* ── Dialog Credentials Container ────────────────────────── */
+.credentials-container {
+  display: grid;
+  gap: 10px;
+}
+
+.credentials-container__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.credential-pairs {
+  display: grid;
+  gap: 12px;
+}
+
+.credential-pair-fields {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.02);
+  position: relative;
+}
+
+.credential-pair-fields .cred-pair-login,
+.credential-pair-fields .cred-pair-password {
+  display: grid;
+  gap: 4px;
+}
+
+.remove-cred-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+}
+
+.remove-cred-btn:hover {
+  opacity: 1;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.add-cred-btn {
+  width: 100%;
+  text-align: center;
+  padding: 8px;
+  font-size: 13px;
 }
 
 /* ── Shake ───────────────────────────────────────────────── */

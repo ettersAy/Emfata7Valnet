@@ -57,17 +57,14 @@
           <span data-i18n="siteUrlLabel">الموقع / الاسم المستعار</span>
           <input id="siteUrl" name="url" type="text" required data-i18n-placeholder="siteUrlPlaceholder" placeholder="example.com أو أي ملاحظة" />
         </label>
-        <label>
-          <span data-i18n="siteLoginLabel">اسم المستخدم / البريد</span>
-          <input id="siteLogin" name="login" type="text" required data-i18n-placeholder="siteLoginPlaceholder" placeholder="user@example.com" />
-        </label>
-        <label>
-          <span data-i18n="sitePasswordLabel">كلمة المرور</span>
-          <div class="password-input-wrap">
-            <input id="sitePassword" name="password" type="password" required data-i18n-placeholder="sitePasswordPlaceholder" placeholder="كلمة المرور" />
-            <button type="button" class="toggle-pass-btn" tabindex="-1" id="dialogTogglePass">👁</button>
+
+        <div id="credentialsContainer" class="credentials-container">
+          <span class="credentials-container__title" data-i18n="credentialsListTitle">بيانات الدخول</span>
+          <div id="credentialPairs" class="credential-pairs">
+            <!-- Credential pair fields are added dynamically -->
           </div>
-        </label>
+          <button type="button" id="addCredentialBtn" class="btn--outline add-cred-btn" data-i18n="addCredentialBtn">+ إضافة بيانات دخول</button>
+        </div>
 
         <menu class="modal__actions">
           <button value="cancel" type="button" id="cancelSiteDialog" data-i18n="cancelBtn">إلغاء</button>
@@ -75,6 +72,23 @@
         </menu>
       </form>
     </dialog>
+
+    <template id="credentialPairTemplate">
+      <div class="credential-pair-fields">
+        <label class="cred-pair-login">
+          <span data-i18n="siteLoginLabel">اسم المستخدم / البريد</span>
+          <input type="text" class="cred-login-input" required data-i18n-placeholder="siteLoginPlaceholder" placeholder="user@example.com" />
+        </label>
+        <label class="cred-pair-password">
+          <span data-i18n="sitePasswordLabel">كلمة المرور</span>
+          <div class="password-input-wrap">
+            <input type="password" class="cred-password-input" required data-i18n-placeholder="sitePasswordPlaceholder" placeholder="كلمة المرور" />
+            <button type="button" class="toggle-pass-btn" tabindex="-1">👁</button>
+          </div>
+        </label>
+        <button type="button" class="icon-btn remove-cred-btn" title="Remove">✕</button>
+      </div>
+    </template>
 
     <script type="module" src="src/popup/popup-main.js"></script>
   </body>
