@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Credential Launcher",
+  "description": "Store website credentials and quickly open, view, and autofill logins.",
+  "version": "0.1.0",
+  "permissions": ["storage", "tabs", "scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Credential Launcher"
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/autofill-content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Credential Launcher Settings</title>
+    <link rel="stylesheet" href="src/options/options.css" />
+  </head>
+  <body>
+    <main class="settings">
+      <h1>Field Keyword Settings</h1>
+      <p>Add comma-separated words used for identifying username/email and password fields.</p>
+      <label>
+        User field keywords
+        <textarea id="userKeywords" rows="4"></textarea>
+      </label>
+      <label>
+        Password field keywords
+        <textarea id="passwordKeywords" rows="4"></textarea>
+      </label>
+      <button id="saveSettings" class="primary">Save settings</button>
+      <p id="saveMessage" aria-live="polite"></p>
+    </main>
+    <script type="module" src="src/options/options-main.js"></script>
+  </body>
+</html>
