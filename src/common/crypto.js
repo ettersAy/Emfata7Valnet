@@ -76,14 +76,35 @@ async function encryptWithKey(key, value) {
   };
 }
 
+/**
+ * Normalize an encrypted payload that may be in old string format ("iv:value")
+ * to the current object format ({ iv, value }).
+ */
+function normalizePayload(payload) {
+  if (!payload) return null;
+  // Already an object with required properties
+  if (typeof payload === "object" && payload.iv && payload.value) {
+    return payload;
+  }
+  // Old string format: "base64Iv:base64Value"
+  if (typeof payload === "string" && payload.includes(":")) {
+    const [iv, value] = payload.split(":");
+    if (iv && value) {
+      return { iv, value };
+    }
+  }
+  return null;
+}
+
 async function decryptWithKey(key, payload) {
-  if (!payload || !payload.iv || !payload.value) {
+  const normalized = normalizePayload(payload);
+  if (!normalized) {
     throw new Error("Invalid encrypted payload: missing iv or value.");
   }
   const plain = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: fromBase64(payload.iv) },
+    { name: "AES-GCM", iv: fromBase64(normalized.iv) },
     key,
-    fromBase64(payload.value)
+    fromBase64(normalized.value)
   );
   return textDecoder.decode(plain);
 }
