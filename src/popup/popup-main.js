@@ -1,363 +1,141 @@
-import { createWebsite, normalizeUrlForOpen } from "../common/models.js";
-import { getFieldKeywords, getWebsites, saveWebsites } from "../common/storage.js";
-import {
-  decryptSecret,
-  encryptSecret,
-  isMasterPasswordConfigured,
-  isUnlocked,
-  setupMasterPassword,
-  unlockMasterPassword
-} from "../common/crypto.js";
-import { popupState } from "./popup-state.js";
+import { getWebsites } from "../common/storage.js";
+import { popupState, filteredWebsites } from "./popup-state.js";
 import { renderWebsites, updateEntryCount } from "./popup-render.js";
-import { createEmptyState } from "./popup-dom.js";
-
-const SESSION_KEYS = {
-  MASTER_PASSWORD: "session_master_password",
-  UNLOCK_DATE: "session_unlock_date"
-};
+import { initVault, trySessionAutoUnlock, bootstrapVaultGate, handleUnlock, lockVault } from "./popup-vault.js";
+import { initDialog, openDialog, closeDialog, onSubmit } from "./popup-dialog.js";
+import { initEvents } from "./popup-events.js";
+import { initDrag } from "./popup-drag.js";
+import { initCollapse, collapse as collapseList } from "./popup-collapse.js";
 
 /* ── DOM refs ───────────────────────────────────────────── */
-const siteList = document.getElementById("websiteList");
-const siteDialog = document.getElementById("siteDialog");
-const siteForm = document.getElementById("siteForm");
-const credentialsContainer = document.getElementById("credentialsContainer");
-const credentialTemplate = document.getElementById("credentialRowTemplate");
-const vaultGate = document.getElementById("vaultGate");
-const vaultHint = document.getElementById("vaultHint");
-const vaultMessage = document.getElementById("vaultMessage");
-const masterPasswordInput = document.getElementById("masterPassword");
-const listMessage = document.getElementById("listMessage");
+const dom = {
+  siteList: document.getElementById("websiteList"),
+  siteDialog: document.getElementById("siteDialog"),
+  siteForm: document.getElementById("siteForm"),
+  vaultGate: document.getElementById("vaultGate"),
+  vaultHint: document.getElementById("vaultHint"),
+  vaultMessage: document.getElementById("vaultMessage"),
+  masterPasswordInput: document.getElementById("masterPassword"),
+  listMessage: document.getElementById("listMessage"),
+  searchBar: document.getElementById("searchBar"),
+  searchInput: document.getElementById("searchInput"),
+  entryCount: document.getElementById("entryCount"),
+  unlockBtn: document.getElementById("unlockVaultBtn"),
+  togglePassBtn: document.getElementById("togglePasswordVisibility"),
+  passwordStrength: document.getElementById("passwordStrength"),
+  strengthFill: document.getElementById("passwordStrength")?.querySelector(".strength-fill"),
+  strengthLabel: document.getElementById("passwordStrength")?.querySelector(".strength-label"),
+  lockVaultBtn: document.getElementById("lockVaultBtn"),
+  expandListBtn: document.getElementById("expandListBtn"),
+  // Dialog refs
+  dialogTitle: document.getElementById("siteDialogTitle"),
+  siteUrl: document.getElementById("siteUrl"),
+  siteLogin: document.getElementById("siteLogin"),
+  sitePassword: document.getElementById("sitePassword"),
+  dialogTogglePass: document.getElementById("dialogTogglePass"),
+  cancelBtn: document.getElementById("cancelSiteDialog"),
+};
 
-const searchBar = document.getElementById("searchBar");
-const searchInput = document.getElementById("searchInput");
-const entryCount = document.getElementById("entryCount");
-const unlockBtn = document.getElementById("unlockVaultBtn");
-const togglePassBtn = document.getElementById("togglePasswordVisibility");
-const passwordStrength = document.getElementById("passwordStrength");
-const strengthFill = passwordStrength?.querySelector(".strength-fill");
-const strengthLabel = passwordStrength?.querySelector(".strength-label");
+/* ── Init all modules ───────────────────────────────────── */
+initVault(dom);
+initDialog(dom);
+initEvents(dom);
+initDrag(dom);
+initCollapse(dom);
 
-/* ── Event wiring ───────────────────────────────────────── */
-unlockBtn.addEventListener("click", onUnlock);
+/* ── Wire top-level events ──────────────────────────────── */
+dom.unlockBtn.addEventListener("click", async () => {
+  const ok = await handleUnlock();
+  if (ok) await loadAndRender();
+});
+
+dom.lockVaultBtn.addEventListener("click", async () => {
+  await lockVault();
+  dom.siteList.hidden = true;
+  dom.searchBar.hidden = true;
+  dom.vaultGate.hidden = false;
+  dom.lockVaultBtn.hidden = true;
+  dom.expandListBtn.hidden = true;
+  await bootstrapVaultGate();
+});
+
 document.getElementById("addSiteBtn").addEventListener("click", () => openDialog());
 document.getElementById("openSettingsBtn").addEventListener("click", () => chrome.runtime.openOptionsPage());
-document.getElementById("cancelSiteDialog").addEventListener("click", () => siteDialog.close());
-document.getElementById("addCredentialBtn").addEventListener("click", () => addCredentialRow());
-siteList.addEventListener("click", onListClick);
-siteForm.addEventListener("submit", onSiteSubmit);
+dom.cancelBtn.addEventListener("click", closeDialog);
+dom.siteForm.addEventListener("submit", (e) => onSubmit(e));
 
-/* search */
-searchInput.addEventListener("input", () => {
-  popupState.searchQuery = searchInput.value.trim().toLowerCase();
-  renderWebsites(filteredWebsites(), siteList);
-  updateEntryCount(popupState.websites.length, filteredWebsites().length, entryCount);
+// Password visibility toggle in vault gate
+dom.togglePassBtn.addEventListener("click", () => {
+  const isPass = dom.masterPasswordInput.type === "password";
+  dom.masterPasswordInput.type = isPass ? "text" : "password";
+  dom.togglePassBtn.textContent = isPass ? "🙈" : "👁";
 });
 
-/* password visibility toggle on vault gate */
-togglePassBtn.addEventListener("click", () => {
-  const isPassword = masterPasswordInput.type === "password";
-  masterPasswordInput.type = isPassword ? "text" : "password";
-  togglePassBtn.textContent = isPassword ? "🙈" : "👁";
+// Password visibility toggle in dialog
+dom.dialogTogglePass.addEventListener("click", () => {
+  const isPass = dom.sitePassword.type === "password";
+  dom.sitePassword.type = isPass ? "text" : "password";
+  dom.dialogTogglePass.textContent = isPass ? "🙈" : "👁";
 });
 
-/* password strength on vault gate */
-masterPasswordInput.addEventListener("input", () => {
-  const val = masterPasswordInput.value;
+// Password strength meter
+dom.masterPasswordInput.addEventListener("input", () => {
+  const val = dom.masterPasswordInput.value;
   if (!val) {
-    passwordStrength.hidden = true;
+    dom.passwordStrength.hidden = true;
     return;
   }
-  passwordStrength.hidden = false;
+  dom.passwordStrength.hidden = false;
   const { strength, label } = evaluateStrength(val);
-  strengthFill.className = `strength-fill ${strength}`;
-  strengthLabel.textContent = label;
+  dom.strengthFill.className = `strength-fill ${strength}`;
+  dom.strengthLabel.textContent = label;
+});
+
+// Collapse button in list (double-click on empty area or custom gesture)
+// We add a small collapse button inside the list area
+dom.siteList.addEventListener("dblclick", (e) => {
+  // Double-click on empty space in the list collapses it
+  if (e.target === dom.siteList || e.target.closest(".site-list")) {
+    if (!e.target.closest(".site-row")) {
+      collapseList();
+    }
+  }
 });
 
 /* ── Bootstrap ──────────────────────────────────────────── */
 await bootstrap();
 
 async function bootstrap() {
-  const configured = await isMasterPasswordConfigured();
-  vaultHint.textContent = configured
-    ? "Enter your master key once per day."
-    : "Create your master key to encrypt the vault.";
-
-  if (configured) {
-    passwordStrength.hidden = true;
-  } else {
-    /* show strength indicator for setup mode */
-    passwordStrength.hidden = false;
-    unlockBtn.textContent = "Create Vault";
-  }
+  await bootstrapVaultGate();
 
   if (await trySessionAutoUnlock()) {
     await loadAndRender();
     return;
   }
 
-  siteList.hidden = true;
-  searchBar.hidden = true;
-  vaultGate.hidden = false;
+  dom.siteList.hidden = true;
+  dom.searchBar.hidden = true;
+  dom.vaultGate.hidden = false;
+  dom.lockVaultBtn.hidden = true;
+  dom.expandListBtn.hidden = true;
 }
 
-async function trySessionAutoUnlock() {
-  if (isUnlocked()) return true;
-
-  const today = new Date().toISOString().slice(0, 10);
-  const data = await chrome.storage.session.get([SESSION_KEYS.MASTER_PASSWORD, SESSION_KEYS.UNLOCK_DATE]);
-  if (data[SESSION_KEYS.UNLOCK_DATE] !== today || !data[SESSION_KEYS.MASTER_PASSWORD]) {
-    return false;
-  }
-
-  return unlockMasterPassword(data[SESSION_KEYS.MASTER_PASSWORD]);
-}
-
-/* ── Unlock / Setup ─────────────────────────────────────── */
-async function onUnlock() {
-  const password = masterPasswordInput.value;
-  if (!password || password.length < 4) {
-    vaultMessage.textContent = "Use at least 4 characters.";
-    return;
-  }
-
-  const configured = await isMasterPasswordConfigured();
-  const success = configured
-    ? await unlockMasterPassword(password)
-    : await setupMasterPassword(password).then(() => true);
-
-  if (!success) {
-    vaultMessage.textContent = "Invalid master key.";
-    shakeElement(vaultGate);
-    return;
-  }
-
-  const today = new Date().toISOString().slice(0, 10);
-  await chrome.storage.session.set({ [SESSION_KEYS.MASTER_PASSWORD]: password, [SESSION_KEYS.UNLOCK_DATE]: today });
-
-  masterPasswordInput.value = "";
-  vaultMessage.textContent = "Vault unlocked.";
-  vaultMessage.style.color = "var(--success)";
-  await loadAndRender();
-}
-
-/* ── Load & Render ──────────────────────────────────────── */
 async function loadAndRender() {
   popupState.websites = await getWebsites();
+  // Sort by order (descending so newest/highest order first)
+  popupState.websites.sort((a, b) => (b.order || 0) - (a.order || 0));
   popupState.searchQuery = "";
-  searchInput.value = "";
-  renderWebsites(popupState.websites, siteList);
-  updateEntryCount(popupState.websites.length, popupState.websites.length, entryCount);
-  siteList.hidden = false;
-  searchBar.hidden = false;
-  vaultGate.hidden = true;
+  dom.searchInput.value = "";
+  renderWebsites(popupState.websites, dom.siteList);
+  updateEntryCount(popupState.websites.length, popupState.websites.length, dom.entryCount);
+  dom.siteList.hidden = false;
+  dom.searchBar.hidden = false;
+  dom.vaultGate.hidden = true;
+  dom.lockVaultBtn.hidden = false;
+  dom.expandListBtn.hidden = true;
+  popupState.collapsed = false;
 }
 
-/* ── Filtering ──────────────────────────────────────────── */
-function filteredWebsites() {
-  if (!popupState.searchQuery) return popupState.websites;
-  const q = popupState.searchQuery;
-  return popupState.websites.filter(
-    (w) =>
-      w.label.toLowerCase().includes(q) ||
-      w.url.toLowerCase().includes(q) ||
-      w.credentials.some((c) => c.label.toLowerCase().includes(q))
-  );
-}
-
-/* ── Dialog ─────────────────────────────────────────────── */
-function openDialog(website = null) {
-  popupState.editWebsiteId = website?.id ?? null;
-  siteForm.reset();
-  credentialsContainer.innerHTML = "";
-
-  if (website) {
-    document.getElementById("siteDialogTitle").textContent = "Edit website";
-    siteForm.url.value = website.url;
-    siteForm.label.value = website.label;
-    website.credentials.forEach((cred) =>
-      addCredentialRow({ ...cred, username: "", password: "" })
-    );
-  } else {
-    document.getElementById("siteDialogTitle").textContent = "Add website";
-    addCredentialRow();
-  }
-
-  siteDialog.showModal();
-}
-
-function addCredentialRow(credential = null) {
-  const node = credentialTemplate.content.firstElementChild.cloneNode(true);
-  const nameInput = node.querySelector(".credential-name");
-  const userInput = node.querySelector(".credential-username");
-  const passInput = node.querySelector(".credential-password");
-  const removeBtn = node.querySelector(".remove-credential");
-  const toggleBtn = node.querySelector(".toggle-pass-btn");
-
-  if (credential) {
-    node.dataset.credentialId = credential.id;
-    nameInput.value = credential.label;
-    userInput.value = credential.username;
-    passInput.value = credential.password;
-  }
-
-  /* toggle password visibility inside credential row */
-  toggleBtn.addEventListener("click", () => {
-    const isPass = passInput.type === "password";
-    passInput.type = isPass ? "text" : "password";
-    toggleBtn.textContent = isPass ? "🙈" : "👁";
-  });
-
-  removeBtn.addEventListener("click", () => {
-    node.style.opacity = "0";
-    node.style.transform = "scale(0.95)";
-    node.style.transition = "all 0.2s ease";
-    setTimeout(() => node.remove(), 200);
-  });
-
-  credentialsContainer.appendChild(node);
-}
-
-/* ── Submit ─────────────────────────────────────────────── */
-async function onSiteSubmit(event) {
-  event.preventDefault();
-  const credentials = await Promise.all(
-    Array.from(credentialsContainer.querySelectorAll(".credential-row")).map(async (row) => ({
-      id: row.dataset.credentialId ?? crypto.randomUUID(),
-      label: row.querySelector(".credential-name").value.trim(),
-      usernameEncrypted: await encryptSecret(row.querySelector(".credential-username").value.trim()),
-      passwordEncrypted: await encryptSecret(row.querySelector(".credential-password").value)
-    }))
-  );
-
-  const website = createWebsite({
-    id: popupState.editWebsiteId ?? undefined,
-    url: siteForm.url.value,
-    label: siteForm.label.value,
-    credentials
-  });
-
-  const idx = popupState.websites.findIndex((item) => item.id === website.id);
-  if (idx >= 0) popupState.websites[idx] = website;
-  else popupState.websites.push(website);
-
-  await saveWebsites(popupState.websites);
-  siteDialog.close();
-  renderWebsites(filteredWebsites(), siteList);
-  updateEntryCount(popupState.websites.length, filteredWebsites().length, entryCount);
-}
-
-/* ── List Click Router ──────────────────────────────────── */
-async function onListClick(event) {
-  listMessage.hidden = true;
-  const row = event.target.closest(".site-row");
-  if (!row) return;
-
-  const website = popupState.websites.find((item) => item.id === row.dataset.websiteId);
-  if (!website) return;
-
-  /* Open site */
-  if (event.target.closest(".open-site")) {
-    const normalized = normalizeUrlForOpen(website.url);
-    if (!normalized) {
-      showToast("This entry is not a valid web address.", "warning");
-      return;
-    }
-    await chrome.tabs.create({ url: normalized });
-    return;
-  }
-
-  /* Edit */
-  if (event.target.closest(".edit-site")) {
-    openDialog(website);
-    return;
-  }
-
-  /* Delete */
-  if (event.target.closest(".delete-site")) {
-    popupState.websites = popupState.websites.filter((item) => item.id !== website.id);
-    await saveWebsites(popupState.websites);
-    renderWebsites(filteredWebsites(), siteList);
-    updateEntryCount(popupState.websites.length, filteredWebsites().length, entryCount);
-    showToast("Entry deleted.", "success");
-    return;
-  }
-
-  /* Credential chip — copy or autofill */
-  const credentialChip = event.target.closest(".credential-chip");
-  if (credentialChip) {
-    const credential = website.credentials.find(
-      (item) => item.id === credentialChip.dataset.credentialId
-    );
-    if (!credential) return;
-
-    if (!credential.usernameEncrypted || !credential.passwordEncrypted) {
-      showToast("Missing encrypted credential data.", "warning");
-      return;
-    }
-
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-    /* If user holds Alt, copy password instead of autofilling */
-    if (event.altKey) {
-      const plainPassword = await decryptSecret(credential.passwordEncrypted);
-      await navigator.clipboard.writeText(plainPassword);
-      showCopyIndicator(credentialChip);
-      showToast("Password copied to clipboard.", "success");
-      return;
-    }
-
-    /* Autofill */
-    if (!tab?.id || !tab.url) return;
-
-    const normalized = normalizeUrlForOpen(website.url);
-    if (!normalized || new URL(tab.url).hostname !== new URL(normalized).hostname) {
-      showToast("Autofill blocked: host mismatch.", "warning");
-      return;
-    }
-
-    await chrome.tabs.sendMessage(tab.id, {
-      type: "RUN_AUTOFILL",
-      payload: {
-        credential: {
-          username: await decryptSecret(credential.usernameEncrypted),
-          password: await decryptSecret(credential.passwordEncrypted)
-        },
-        fieldKeywords: await getFieldKeywords()
-      }
-    });
-    showToast("Credentials autofilled.", "success");
-  }
-}
-
-/* ── Toast ──────────────────────────────────────────────── */
-function showToast(message, type = "muted") {
-  listMessage.textContent = message;
-  listMessage.hidden = false;
-  listMessage.style.color =
-    type === "success" ? "var(--success)" :
-    type === "warning" ? "var(--warning)" : "var(--text-muted)";
-
-  clearTimeout(popupState._toastTimer);
-  popupState._toastTimer = setTimeout(() => {
-    listMessage.hidden = true;
-  }, 2500);
-}
-
-/* ── Copy indicator on chip ─────────────────────────────── */
-function showCopyIndicator(chip) {
-  let indicator = chip.querySelector(".copy-indicator");
-  if (!indicator) {
-    indicator = document.createElement("span");
-    indicator.className = "copy-indicator";
-    indicator.textContent = "Copied!";
-    chip.appendChild(indicator);
-  }
-  indicator.classList.add("show");
-  setTimeout(() => indicator.classList.remove("show"), 1500);
-}
-
-/* ── Password strength evaluator ────────────────────────── */
 function evaluateStrength(password) {
   let score = 0;
   if (password.length >= 8) score++;
@@ -366,16 +144,8 @@ function evaluateStrength(password) {
   if (/[0-9]/.test(password)) score++;
   if (/[^A-Za-z0-9]/.test(password)) score++;
 
-  if (score <= 1) return { strength: "weak", label: "Weak — add more variety" };
-  if (score === 2) return { strength: "fair", label: "Fair — getting there" };
-  if (score === 3) return { strength: "good", label: "Good — almost strong" };
-  return { strength: "strong", label: "Strong — excellent!" };
-}
-
-/* ── Shake animation for invalid input ──────────────────── */
-function shakeElement(el) {
-  el.style.animation = "none";
-  el.offsetHeight; /* trigger reflow */
-  el.style.animation = "shake 0.4s ease";
-  setTimeout(() => (el.style.animation = ""), 400);
+  if (score <= 1) return { strength: "weak", label: "ضعيف — أضف تنوعاً أكثر" };
+  if (score === 2) return { strength: "fair", label: "مقبول" };
+  if (score === 3) return { strength: "good", label: "جيد — يكاد يكون قوياً" };
+  return { strength: "strong", label: "قوي — ممتاز!" };
 }

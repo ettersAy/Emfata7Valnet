@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Credential Launcher",
+  "name": "مفاتيح",
   "description": "Store website credentials and quickly open, view, and autofill logins.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "permissions": ["storage", "tabs", "scripting", "activeTab"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Credential Launcher"
+    "default_title": "مفاتيح"
   },
   "options_page": "options.html",
   "background": {

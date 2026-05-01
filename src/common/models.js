@@ -1,9 +1,11 @@
-export function createWebsite({ id = crypto.randomUUID(), url, label, credentials = [] }) {
+export function createWebsite({ id = crypto.randomUUID(), url, label, usernameEncrypted, passwordEncrypted, order }) {
   return {
     id,
     url: sanitizeAddress(url),
-    label: label.trim(),
-    credentials
+    label: (label || url).trim(),
+    usernameEncrypted: usernameEncrypted ?? null,
+    passwordEncrypted: passwordEncrypted ?? null,
+    order: order ?? Date.now()
   };
 }
 

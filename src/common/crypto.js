@@ -63,6 +63,10 @@ export function isUnlocked() {
   return Boolean(sessionKey);
 }
 
+export function lockVault() {
+  sessionKey = null;
+}
+
 async function encryptWithKey(key, value) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, textEncoder.encode(value));

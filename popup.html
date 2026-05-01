@@ -1,22 +1,23 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Credential Launcher</title>
+    <title>مفاتيح</title>
     <link rel="stylesheet" href="src/popup/popup.css" />
   </head>
   <body>
     <main class="app">
       <header class="app__header">
         <div class="app__brand">
-          <div class="logo">🔐</div>
+          <div class="logo">🔑</div>
           <div>
-            <h1>Vault</h1>
-            <p class="muted">Quick, secure credential launcher</p>
+            <h1>مفاتيح</h1>
+            <p class="muted">مدير كلمات المرور الآمن</p>
           </div>
         </div>
         <div class="actions">
+          <button id="lockVaultBtn" class="icon-btn" title="Lock vault" hidden>🔒</button>
           <button id="addSiteBtn" class="icon-btn" title="Add entry">+</button>
           <button id="openSettingsBtn" class="icon-btn" title="Settings">⚙</button>
         </div>
@@ -24,65 +25,56 @@
 
       <section id="vaultGate" class="vault-gate">
         <div class="vault-gate__icon">🔒</div>
-        <h2>Vault Locked</h2>
+        <h2>الخزنة مقفلة</h2>
         <p id="vaultHint" class="vault-gate__hint"></p>
         <div class="vault-gate__input-row">
-          <input id="masterPassword" type="password" placeholder="Enter master key…" autocomplete="off" />
-          <button id="togglePasswordVisibility" class="eye-btn" type="button" title="Show password">👁</button>
+          <input id="masterPassword" type="password" placeholder="أدخل المفتاح الرئيسي…" autocomplete="off" />
+          <button id="togglePasswordVisibility" class="eye-btn" type="button" title="إظهار كلمة المرور">👁</button>
         </div>
         <div id="passwordStrength" class="password-strength" hidden>
           <div class="strength-bar"><span class="strength-fill"></span></div>
           <span class="strength-label"></span>
         </div>
-        <button id="unlockVaultBtn" class="primary primary--glow" type="button">Unlock</button>
+        <button id="unlockVaultBtn" class="primary primary--glow" type="button">فتح</button>
         <p id="vaultMessage" aria-live="polite" class="vault-gate__message"></p>
       </section>
 
       <div id="searchBar" class="search-bar" hidden>
-        <input id="searchInput" type="text" placeholder="🔍 Search entries…" />
+        <input id="searchInput" type="text" placeholder="🔍 بحث…" />
         <span id="entryCount" class="entry-count"></span>
       </div>
 
       <p id="listMessage" class="toast" hidden></p>
       <section id="websiteList" class="site-list" hidden></section>
+
+      <button id="expandListBtn" class="expand-list-btn" hidden title="Show entries">📋 المفاتيح</button>
     </main>
 
     <dialog id="siteDialog" class="modal">
       <form id="siteForm" method="dialog" class="modal__content">
-        <h2 id="siteDialogTitle">Add website</h2>
+        <h2 id="siteDialogTitle">إضافة موقع</h2>
         <label>
-          Website / Alias
-          <input id="siteUrl" name="url" type="text" required placeholder="example.com or any note" />
+          الموقع / الاسم المستعار
+          <input id="siteUrl" name="url" type="text" required placeholder="example.com أو أي ملاحظة" />
         </label>
         <label>
-          Label
-          <input id="siteLabel" name="label" type="text" required placeholder="Work account" />
+          اسم المستخدم / البريد
+          <input id="siteLogin" name="login" type="text" required placeholder="user@example.com" />
         </label>
-
-        <div class="credentials-header">
-          <h3>Credentials</h3>
-          <button id="addCredentialBtn" class="btn--outline" type="button">+ Add</button>
-        </div>
-        <div id="credentialsContainer" class="credentials-container"></div>
+        <label>
+          كلمة المرور
+          <div class="password-input-wrap">
+            <input id="sitePassword" name="password" type="password" required placeholder="كلمة المرور" />
+            <button type="button" class="toggle-pass-btn" tabindex="-1" id="dialogTogglePass">👁</button>
+          </div>
+        </label>
 
         <menu class="modal__actions">
-          <button value="cancel" type="button" id="cancelSiteDialog">Cancel</button>
-          <button value="confirm" type="submit" class="primary">Save</button>
+          <button value="cancel" type="button" id="cancelSiteDialog">إلغاء</button>
+          <button value="confirm" type="submit" class="primary">حفظ</button>
         </menu>
       </form>
     </dialog>
-
-    <template id="credentialRowTemplate">
-      <div class="credential-row">
-        <input class="credential-name" type="text" placeholder="Label" required />
-        <input class="credential-username" type="text" placeholder="Username" required />
-        <div class="password-input-wrap">
-          <input class="credential-password" type="password" placeholder="Password" required />
-          <button type="button" class="toggle-pass-btn" tabindex="-1">👁</button>
-        </div>
-        <button type="button" class="remove-credential" title="Remove">✕</button>
-      </div>
-    </template>
 
     <script type="module" src="src/popup/popup-main.js"></script>
   </body>
