@@ -1,43 +1,66 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Credential Launcher Settings</title>
+    <title>مفاتيح - الإعدادات</title>
     <link rel="stylesheet" href="src/options/options.css" />
   </head>
   <body>
     <main class="settings">
       <header>
-        <h1>⚙ Field Keyword Settings</h1>
+        <h1>⚙ الإعدادات</h1>
         <p class="subtitle">
-          Customize the keywords used to detect username and password fields
-          during autofill.
+          تخصيص كلمات الكشف عن الحقول والتصدير والاستيراد.
         </p>
       </header>
 
       <div class="card">
-        <h2>🔑 User Field Keywords</h2>
-        <p>Comma-separated words that identify username / email fields.</p>
+        <h2>🔑 كلمات حقل المستخدم</h2>
+        <p>كلمات مفصولة بفواصل لتحديد حقول اسم المستخدم / البريد الإلكتروني.</p>
         <label>
-          Keywords
+          الكلمات
           <textarea id="userKeywords" rows="3" placeholder="email, user, username, login, identifier"></textarea>
         </label>
         <div id="userKeywordPreview" class="keyword-chips"></div>
       </div>
 
       <div class="card">
-        <h2>🔒 Password Field Keywords</h2>
-        <p>Comma-separated words that identify password fields.</p>
+        <h2>🔒 كلمات حقل كلمة المرور</h2>
+        <p>كلمات مفصولة بفواصل لتحديد حقول كلمة المرور.</p>
         <label>
-          Keywords
+          الكلمات
           <textarea id="passwordKeywords" rows="3" placeholder="password, pwd, passcode, pin"></textarea>
         </label>
         <div id="passwordKeywordPreview" class="keyword-chips"></div>
       </div>
 
-      <button id="saveSettings" class="primary">💾 Save Settings</button>
+      <button id="saveSettings" class="primary">💾 حفظ الإعدادات</button>
       <p id="saveMessage" aria-live="polite"></p>
+
+      <hr />
+
+      <div class="card">
+        <h2>📤 تصدير الخزنة</h2>
+        <p>تصدير جميع بيانات الخزنة (مشفرة) بتنسيق JSON أو CSV.</p>
+        <div class="btn-row">
+          <button id="exportJson" class="primary">📦 تصدير JSON</button>
+          <button id="exportCsv" class="primary">📊 تصدير CSV</button>
+        </div>
+        <p id="exportMessage" aria-live="polite" class="msg"></p>
+      </div>
+
+      <div class="card">
+        <h2>📥 استيراد الخزنة</h2>
+        <p>استيراد بيانات من ملف JSON أو CSV تم تصديره مسبقاً.</p>
+        <p class="warning-text">⚠ تنبيه: الاستيراد سيستبدل جميع البيانات الحالية!</p>
+        <label class="file-label">
+          اختر ملف
+          <input type="file" id="importFile" accept=".json,.csv" />
+        </label>
+        <button id="importBtn" class="primary">📥 استيراد</button>
+        <p id="importMessage" aria-live="polite" class="msg"></p>
+      </div>
     </main>
     <script type="module" src="src/options/options-main.js"></script>
   </body>

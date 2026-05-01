@@ -11,6 +11,7 @@
   --accent: #6366f1;
   --accent-glow: #818cf8;
   --success: #34d399;
+  --danger: #f87171;
 
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color-scheme: dark;
@@ -46,9 +47,7 @@ body::before {
   padding: 40px 24px;
 }
 
-.settings header {
-  margin-bottom: 28px;
-}
+.settings header { margin-bottom: 28px; }
 
 .settings h1 {
   font-size: 24px;
@@ -75,11 +74,7 @@ body::before {
   margin-bottom: 16px;
 }
 
-.card h2 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
+.card h2 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
 
 .card p {
   color: var(--text-muted);
@@ -146,9 +141,71 @@ textarea:focus {
 }
 
 #saveMessage.success { color: var(--success); }
-#saveMessage.error   { color: #f87171; }
+#saveMessage.error   { color: var(--danger); }
 
-/* tags / chips for keyword preview */
+/* ── Separator ──────────────────────────────────────────── */
+hr {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 24px 0;
+}
+
+/* ── Button row ─────────────────────────────────────────── */
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-row .primary { flex: 1; min-width: 140px; }
+
+/* ── Messages ───────────────────────────────────────────── */
+.msg {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 20px;
+}
+
+.msg.success { color: var(--success); }
+.msg.error   { color: var(--danger); }
+
+.warning-text {
+  color: #fbbf24 !important;
+  font-weight: 600;
+}
+
+/* ── File input ─────────────────────────────────────────── */
+.file-label {
+  display: block;
+  cursor: pointer;
+}
+
+.file-label input[type="file"] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.file-label input[type="file"]::file-selector-button {
+  border: 1px solid var(--border-glow);
+  border-radius: 6px;
+  padding: 6px 14px;
+  margin-right: 10px;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-glow);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+/* ── Keyword chips ──────────────────────────────────────── */
 .keyword-chips {
   display: flex;
   flex-wrap: wrap;
@@ -166,7 +223,7 @@ textarea:focus {
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
-/* scrollbar */
+/* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 10px; }

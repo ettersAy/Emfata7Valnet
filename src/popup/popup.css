@@ -11,7 +11,7 @@
   --text-primary: #e5e7eb;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
-  --accent: #6366f1;         /* indigo */
+  --accent: #6366f1;
   --accent-glow: #818cf8;
   --accent-cyan: #22d3ee;
   --danger: #f87171;
@@ -19,25 +19,21 @@
   --success: #34d399;
   --warning: #fbbf24;
 
-  /* radii */
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 20px;
   --radius-pill: 999px;
 
-  /* shadows */
   --shadow-glow-sm: 0 0 12px rgba(99, 102, 241, 0.15);
   --shadow-glow-md: 0 0 24px rgba(99, 102, 241, 0.2);
   --shadow-elevate: 0 8px 32px rgba(0, 0, 0, 0.4);
 
-  /* type */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color-scheme: dark;
   font-size: 14px;
   line-height: 1.5;
 }
 
-/* ── Reset & Base ────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -49,7 +45,6 @@ body {
   overflow-x: hidden;
 }
 
-/* subtle animated background mesh */
 body::before {
   content: '';
   position: fixed;
@@ -61,6 +56,11 @@ body::before {
   z-index: 0;
 }
 
+/* RTL overrides */
+[dir="rtl"] .app,
+[dir="rtl"] .vault-gate,
+[dir="rtl"] .modal__content { direction: rtl; text-align: right; }
+
 /* ── App Shell ───────────────────────────────────────────── */
 .app {
   position: relative;
@@ -70,7 +70,6 @@ body::before {
   gap: 16px;
 }
 
-/* ── Header ──────────────────────────────────────────────── */
 .app__header {
   display: flex;
   justify-content: space-between;
@@ -115,7 +114,6 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   letter-spacing: 0.2px;
 }
 
-/* ── Actions / Icon Buttons ──────────────────────────────── */
 .actions { display: flex; gap: 8px; }
 
 .icon-btn {
@@ -145,7 +143,6 @@ h2, h3 { font-size: 16px; font-weight: 600; }
 
 .icon-btn:active { transform: scale(0.95); }
 
-/* ── Primary Button ──────────────────────────────────────── */
 .primary {
   border: none;
   border-radius: var(--radius-sm);
@@ -168,16 +165,13 @@ h2, h3 { font-size: 16px; font-weight: 600; }
 
 .primary:active { transform: scale(0.98); }
 
-.primary--glow {
-  animation: pulse-glow 2.5s ease-in-out infinite;
-}
+.primary--glow { animation: pulse-glow 2.5s ease-in-out infinite; }
 
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 8px rgba(99, 102, 241, 0.2); }
   50%      { box-shadow: 0 0 20px rgba(99, 102, 241, 0.45); }
 }
 
-/* ── Outline Button ──────────────────────────────────────── */
 .btn--outline {
   border: 1px solid var(--border-glow);
   border-radius: var(--radius-pill);
@@ -196,7 +190,7 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   box-shadow: var(--shadow-glow-sm);
 }
 
-/* ── Vault Gate (Lock Screen) ────────────────────────────── */
+/* ── Vault Gate ──────────────────────────────────────────── */
 .vault-gate {
   display: grid;
   gap: 14px;
@@ -220,10 +214,7 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   50%      { transform: translateY(-6px); }
 }
 
-.vault-gate h2 {
-  font-size: 18px;
-  color: var(--text-primary);
-}
+.vault-gate h2 { font-size: 18px; color: var(--text-primary); }
 
 .vault-gate__hint {
   color: var(--text-muted);
@@ -272,7 +263,6 @@ h2, h3 { font-size: 16px; font-weight: 600; }
 
 .eye-btn:hover { opacity: 1; }
 
-/* password strength */
 .password-strength {
   width: 100%;
   display: grid;
@@ -361,9 +351,9 @@ h2, h3 { font-size: 16px; font-weight: 600; }
 .site-list {
   display: grid;
   gap: 10px;
+  min-height: 40px;
 }
 
-/* ── Site Row (Card) ─────────────────────────────────────── */
 .site-row {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -372,6 +362,16 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   backdrop-filter: blur(8px);
   transition: all 0.2s ease;
   animation: cardIn 0.35s ease both;
+  cursor: grab;
+}
+
+.site-row:active { cursor: grabbing; }
+
+.site-row.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  border-color: var(--border-active);
+  box-shadow: var(--shadow-glow-md);
 }
 
 @keyframes cardIn {
@@ -385,6 +385,18 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   transform: translateY(-2px);
 }
+
+/* ── Drag Handle ─────────────────────────────────────────── */
+.drag-handle {
+  cursor: grab;
+  font-size: 18px;
+  color: var(--text-dim);
+  user-select: none;
+  padding: 0 4px;
+  transition: color 0.15s;
+}
+
+.drag-handle:hover { color: var(--accent-glow); }
 
 .site-head {
   display: flex;
@@ -403,6 +415,7 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   display: flex;
   align-items: center;
   gap: 6px;
+  user-select: none;
 }
 
 .site-head .open-site::before {
@@ -410,9 +423,7 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   font-size: 14px;
 }
 
-.site-head .open-site:hover {
-  color: var(--accent-glow);
-}
+.site-head .open-site:hover { color: var(--accent-glow); }
 
 .site-head .icon-btn {
   width: 30px;
@@ -476,7 +487,6 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   opacity: 0.6;
 }
 
-/* copy indicator */
 .credential-chip .copy-indicator {
   position: absolute;
   top: -18px;
@@ -493,9 +503,29 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   pointer-events: none;
 }
 
-.credential-chip .copy-indicator.show {
-  opacity: 1;
+.credential-chip .copy-indicator.show { opacity: 1; }
+
+/* Copy indicator on site title */
+.open-site .copy-indicator {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--success);
+  color: #000;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  white-space: nowrap;
 }
+
+.open-site .copy-indicator.show { opacity: 1; }
+
+.open-site { position: relative; }
 
 /* ── Empty State ─────────────────────────────────────────── */
 .empty-state {
@@ -512,16 +542,41 @@ h2, h3 { font-size: 16px; font-weight: 600; }
   animation: float 3s ease-in-out infinite;
 }
 
-.empty-state h3 {
-  color: var(--text-primary);
-  font-size: 16px;
-}
+.empty-state h3 { color: var(--text-primary); font-size: 16px; }
 
 .empty-state p {
   color: var(--text-muted);
   font-size: 13px;
   max-width: 240px;
   line-height: 1.6;
+}
+
+/* ── Expand List Button (collapsed state) ────────────────── */
+.expand-list-btn {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: 10px 24px;
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  color: var(--accent-glow);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-elevate);
+  transition: all 0.2s ease;
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+.expand-list-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-active);
+  box-shadow: var(--shadow-glow-md);
+  transform: translateX(-50%) translateY(-2px);
 }
 
 /* ── Labels & Inputs ─────────────────────────────────────── */
@@ -593,43 +648,14 @@ input:focus, textarea:focus {
   font-weight: 700;
 }
 
-.credentials-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.credentials-container {
-  display: grid;
-  gap: 8px;
-}
-
-/* ── Credential Row (in modal) ───────────────────────────── */
-.credential-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 36px;
-  gap: 8px;
-  align-items: start;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  transition: all 0.2s ease;
-}
-
-.credential-row:hover {
-  border-color: var(--border-glow);
-}
-
+/* ── Password wrap in dialog ─────────────────────────────── */
 .password-input-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.password-input-wrap input {
-  padding-right: 32px;
-}
+.password-input-wrap input { padding-right: 32px; }
 
 .toggle-pass-btn {
   position: absolute;
@@ -646,27 +672,6 @@ input:focus, textarea:focus {
 }
 
 .toggle-pass-btn:hover { opacity: 1; }
-
-.remove-credential {
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-dim);
-  cursor: pointer;
-  font-size: 16px;
-  height: 36px;
-  width: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.remove-credential:hover {
-  background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.3);
-  color: var(--danger);
-}
 
 /* ── Modal Actions ───────────────────────────────────────── */
 .modal__actions {
@@ -707,19 +712,7 @@ input:focus, textarea:focus {
 }
 
 /* ── Scrollbar ───────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.35);
-}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.35); }

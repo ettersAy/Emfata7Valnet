@@ -1,16 +1,21 @@
-# Credential Launcher Chrome Extension
+# مفاتيح — Chrome Extension
 
-Minimal MV3 extension to manage credentials per website and autofill login forms.
+إضافة كروم MV3 لإدارة كلمات المرور وملء نماذج تسجيل الدخول تلقائياً.
 
-## Features
-- Add/edit/delete websites.
-- Store multiple credentials per website.
-- Open website in new tab.
-- Autofill helper using configurable keyword matching with hostname match checks.
-- Master-password encrypted vault for credentials at rest.
-- Settings page for username/password field keywords.
+## الميزات
+- إضافة / تعديل / حذف المواقع.
+- نموذج مبسط: الموقع، اسم المستخدم، كلمة المرور.
+- فتح الموقع في علامة تبويب جديدة.
+- ملء تلقائي مع التحقق من اسم المضيف.
+- تشفير الخزنة بكلمة مرور رئيسية (PBKDF2 + AES-256-GCM).
+- القفل التلقائي مرة واحدة يومياً + زر قفل يدوي.
+- نسخ بالنقر المزدوج (الرابط، اسم المستخدم، كلمة المرور).
+- سحب وإفلات لترتيب المواقع.
+- طي / توسيع قائمة المواقع.
+- تصدير / استيراد بتنسيق JSON و CSV.
+- صفحة إعدادات لكلمات الكشف عن الحقول.
 
-## Load locally
-1. Open `chrome://extensions`.
-2. Enable Developer mode.
-3. Click "Load unpacked" and select this repo folder.
+## التحميل المحلي
+1. افتح `chrome://extensions`.
+2. فعّل وضع المطور.
+3. انقر "تحميل بدون حزمة" واختر مجلد المستودع.
