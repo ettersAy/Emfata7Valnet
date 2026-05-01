@@ -131,12 +131,21 @@ async function handleFillClick(fillBtn, website) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) return;
 
+  let username, password;
+  try {
+    username = await decryptSecret(cred.loginEncrypted);
+    password = await decryptSecret(cred.passwordEncrypted);
+  } catch {
+    showToast(listMessage, t("decryptionFailed"), "error");
+    return;
+  }
+
   await chrome.tabs.sendMessage(tab.id, {
     type: "RUN_AUTOFILL",
     payload: {
       credential: {
-        username: await decryptSecret(cred.loginEncrypted),
-        password: await decryptSecret(cred.passwordEncrypted)
+        username,
+        password
       },
       fieldKeywords: await getFieldKeywords()
     }

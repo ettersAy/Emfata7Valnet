@@ -206,6 +206,11 @@ const TRANSLATIONS = {
     fr: "Données chiffrées manquantes.", es: "Faltan datos cifrados.",
     hi: "एन्क्रिप्टेड डेटा गायब है।", zh: "加密数据丢失。",
   },
+  decryptionFailed: {
+    ar: "فشل فك التشفير.", en: "Decryption failed.",
+    fr: "Échec du déchiffrement.", es: "Descifrado fallido.",
+    hi: "डिक्रिप्शन विफल।", zh: "解密失败。",
+  },
   hostMismatch: {
     ar: "تعذر الملء التلقائي: اسم المضيف غير متطابق.",
     en: "Autofill failed: hostname mismatch.",
