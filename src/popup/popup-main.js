@@ -6,6 +6,7 @@ import { initDialog, openDialog, closeDialog, onSubmit } from "./popup-dialog.js
 import { initEvents } from "./popup-events.js";
 import { initDrag } from "./popup-drag.js";
 import { initCollapse, collapse as collapseList } from "./popup-collapse.js";
+import { initI18n, t } from "../common/i18n.js";
 
 /* ── DOM refs ───────────────────────────────────────────── */
 const dom = {
@@ -35,6 +36,9 @@ const dom = {
   dialogTogglePass: document.getElementById("dialogTogglePass"),
   cancelBtn: document.getElementById("cancelSiteDialog"),
 };
+
+// Initialize translations before modules
+await initI18n();
 
 /* ── Init all modules ───────────────────────────────────── */
 initVault(dom);
@@ -144,8 +148,8 @@ function evaluateStrength(password) {
   if (/[0-9]/.test(password)) score++;
   if (/[^A-Za-z0-9]/.test(password)) score++;
 
-  if (score <= 1) return { strength: "weak", label: "ضعيف — أضف تنوعاً أكثر" };
-  if (score === 2) return { strength: "fair", label: "مقبول" };
-  if (score === 3) return { strength: "good", label: "جيد — يكاد يكون قوياً" };
-  return { strength: "strong", label: "قوي — ممتاز!" };
+  if (score <= 1) return { strength: "weak", label: t("strengthWeak") };
+  if (score === 2) return { strength: "fair", label: t("strengthFair") };
+  if (score === 3) return { strength: "good", label: t("strengthGood") };
+  return { strength: "strong", label: t("strengthStrong") };
 }

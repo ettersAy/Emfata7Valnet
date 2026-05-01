@@ -3,62 +3,71 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>مفاتيح - الإعدادات</title>
+    <title data-i18n="appName">مفاتيح - الإعدادات</title>
     <link rel="stylesheet" href="src/options/options.css" />
   </head>
   <body>
     <main class="settings">
       <header>
-        <h1>⚙ الإعدادات</h1>
-        <p class="subtitle">
+        <h1 data-i18n="settingsTitle">⚙ الإعدادات</h1>
+        <p class="subtitle" data-i18n="settingsSubtitle">
           تخصيص كلمات الكشف عن الحقول والتصدير والاستيراد.
         </p>
       </header>
 
+      <!-- Language Selector -->
       <div class="card">
-        <h2>🔑 كلمات حقل المستخدم</h2>
-        <p>كلمات مفصولة بفواصل لتحديد حقول اسم المستخدم / البريد الإلكتروني.</p>
+        <h2 data-i18n="languageLabel">🌐 اللغة</h2>
         <label>
-          الكلمات
-          <textarea id="userKeywords" rows="3" placeholder="email, user, username, login, identifier"></textarea>
+          <span data-i18n="languageLabel">🌐 اللغة</span>
+          <select id="languageSelect"></select>
+        </label>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="userKeywordsTitle">🔑 كلمات حقل المستخدم</h2>
+        <p data-i18n="userKeywordsDesc">كلمات مفصولة بفواصل لتحديد حقول اسم المستخدم / البريد الإلكتروني.</p>
+        <label>
+          <span data-i18n="userKeywordsLabel">الكلمات</span>
+          <textarea id="userKeywords" rows="3" data-i18n-placeholder="userKeywordsPlaceholder" placeholder="email, user, username, login, identifier"></textarea>
         </label>
         <div id="userKeywordPreview" class="keyword-chips"></div>
       </div>
 
       <div class="card">
-        <h2>🔒 كلمات حقل كلمة المرور</h2>
-        <p>كلمات مفصولة بفواصل لتحديد حقول كلمة المرور.</p>
+        <h2 data-i18n="passwordKeywordsTitle">🔒 كلمات حقل كلمة المرور</h2>
+        <p data-i18n="passwordKeywordsDesc">كلمات مفصولة بفواصل لتحديد حقول كلمة المرور.</p>
         <label>
-          الكلمات
-          <textarea id="passwordKeywords" rows="3" placeholder="password, pwd, passcode, pin"></textarea>
+          <span data-i18n="passwordKeywordsLabel">الكلمات</span>
+          <textarea id="passwordKeywords" rows="3" data-i18n-placeholder="passwordKeywordsPlaceholder" placeholder="password, pwd, passcode, pin"></textarea>
         </label>
         <div id="passwordKeywordPreview" class="keyword-chips"></div>
       </div>
 
-      <button id="saveSettings" class="primary">💾 حفظ الإعدادات</button>
+      <button id="saveSettings" class="primary" data-i18n="saveSettingsBtn">💾 حفظ الإعدادات</button>
       <p id="saveMessage" aria-live="polite"></p>
 
       <hr />
 
       <div class="card">
-        <h2>📤 تصدير الخزنة</h2>
-        <p>تصدير جميع بيانات الخزنة (مشفرة) بتنسيق JSON أو CSV.</p>
+        <h2 data-i18n="exportTitle">📤 تصدير الخزنة</h2>
+        <p data-i18n="exportDesc">تصدير جميع بيانات الخزنة (مشفرة) بتنسيق JSON أو CSV.</p>
         <div class="btn-row">
-          <button id="exportJson" class="primary">📦 تصدير JSON</button>
-          <button id="exportCsv" class="primary">📊 تصدير CSV</button>
+          <button id="exportJson" class="primary" data-i18n="exportJsonBtn">📦 تصدير JSON</button>
+          <button id="exportCsv" class="primary" data-i18n="exportCsvBtn">📊 تصدير CSV</button>
         </div>
         <p id="exportMessage" aria-live="polite" class="msg"></p>
       </div>
 
       <div class="card">
-        <h2>📥 استيراد الخزنة</h2>
-        <p>استيراد بيانات من ملف JSON أو CSV تم تصديره مسبقاً.</p>
-        <p class="warning-text">⚠ تنبيه: الاستيراد سيستبدل جميع البيانات الحالية!</p>
+        <h2 data-i18n="importTitle">📥 استيراد الخزنة</h2>
+        <p data-i18n="importDesc">استيراد بيانات من ملف JSON أو CSV تم تصديره مسبقاً.</p>
+        <p class="warning-text" data-i18n="importWarning">⚠ تنبيه: الاستيراد سيستبدل جميع البيانات الحالية!</p>
         <label class="file-label">
-          اختر ملف
+          <span data-i18n="importFileLabel">اختر ملف</span>
           <input type="file" id="importFile" accept=".json,.csv" />
         </label>
-        <button id="importBtn" class="primary">📥 استيراد</button>
+        <button id="importBtn" class="primary" data-i18n="importBtn">📥 استيراد</button>
         <p id="importMessage" aria-live="polite" class="msg"></p>
       </div>
     </main>

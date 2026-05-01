@@ -1,4 +1,6 @@
 import { createSiteRow, clearElement, createEmptyState } from "./popup-dom.js";
+import { t } from "../common/i18n.js";
+
 import { popupState } from "./popup-state.js";
 
 export function renderWebsites(websites, root) {
@@ -7,7 +9,7 @@ export function renderWebsites(websites, root) {
   if (!websites.length) {
     root.appendChild(
       createEmptyState(
-        "انقر على زر + أعلاه لإضافة أول كلمة مرور.",
+        t("emptyStateMessage"),
         "🗄️"
       )
     );
@@ -21,9 +23,9 @@ export function renderWebsites(websites, root) {
 
 export function updateEntryCount(total, visible, countEl) {
   if (total === visible) {
-    countEl.textContent = `${total} مدخلات`;
+    countEl.textContent = t("entriesCount", { count: total });
   } else {
-    countEl.textContent = `${visible} / ${total}`;
+    countEl.textContent = t("entriesCountFiltered", { visible, total });
   }
 }
 
