@@ -15,7 +15,15 @@
           <button id="openSettingsBtn" class="icon-btn" title="Settings">⚙️</button>
         </div>
       </header>
-      <section id="websiteList" class="site-list"></section>
+      <section id="websiteList" class="site-list" hidden></section>
+      <section id="vaultGate" class="vault-gate">
+        <h2>Vault lock</h2>
+        <p id="vaultHint">Create a master password to encrypt your credentials.</p>
+        <input id="masterPassword" type="password" placeholder="Master password" />
+        <button id="unlockVaultBtn" class="primary" type="button">Unlock vault</button>
+        <p id="vaultMessage" aria-live="polite"></p>
+      </section>
+
     </main>
 
     <dialog id="siteDialog" class="modal">

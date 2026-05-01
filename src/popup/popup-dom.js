@@ -10,7 +10,6 @@ export function createCredentialChip(websiteId, credential) {
 
   const lock = document.createElement("span");
   lock.textContent = "🔐";
-  lock.title = credential.password;
 
   const magic = document.createElement("span");
   magic.textContent = "🪄";
