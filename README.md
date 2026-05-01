@@ -6,8 +6,8 @@ Minimal MV3 extension to manage credentials per website and autofill login forms
 - Add/edit/delete websites.
 - Store multiple credentials per website.
 - Open website in new tab.
-- Password tooltip on lock icon.
-- Autofill helper using configurable keyword matching.
+- Autofill helper using configurable keyword matching with hostname match checks.
+- Master-password encrypted vault for credentials at rest.
 - Settings page for username/password field keywords.
 
 ## Load locally
