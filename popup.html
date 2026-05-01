@@ -9,25 +9,41 @@
   <body>
     <main class="app">
       <header class="app__header">
-        <div>
-          <h1>Vault</h1>
-          <p class="muted">Quick, secure credential launcher</p>
+        <div class="app__brand">
+          <div class="logo">🔐</div>
+          <div>
+            <h1>Vault</h1>
+            <p class="muted">Quick, secure credential launcher</p>
+          </div>
         </div>
         <div class="actions">
-          <button id="addSiteBtn" class="icon-btn" title="Add">＋</button>
+          <button id="addSiteBtn" class="icon-btn" title="Add entry">+</button>
           <button id="openSettingsBtn" class="icon-btn" title="Settings">⚙</button>
         </div>
       </header>
-<<<<<<< HEAD
-      <section id="vaultGate" class="vault-gate card">
-        <h2>Locked</h2>
-        <p id="vaultHint"></p>
-        <input id="masterPassword" type="password" placeholder="Master key" />
-        <button id="unlockVaultBtn" class="primary" type="button">Unlock</button>
-        <p id="vaultMessage" aria-live="polite" class="muted"></p>
+
+      <section id="vaultGate" class="vault-gate">
+        <div class="vault-gate__icon">🔒</div>
+        <h2>Vault Locked</h2>
+        <p id="vaultHint" class="vault-gate__hint"></p>
+        <div class="vault-gate__input-row">
+          <input id="masterPassword" type="password" placeholder="Enter master key…" autocomplete="off" />
+          <button id="togglePasswordVisibility" class="eye-btn" type="button" title="Show password">👁</button>
+        </div>
+        <div id="passwordStrength" class="password-strength" hidden>
+          <div class="strength-bar"><span class="strength-fill"></span></div>
+          <span class="strength-label"></span>
+        </div>
+        <button id="unlockVaultBtn" class="primary primary--glow" type="button">Unlock</button>
+        <p id="vaultMessage" aria-live="polite" class="vault-gate__message"></p>
       </section>
 
-      <p id="listMessage" class="muted"></p>
+      <div id="searchBar" class="search-bar" hidden>
+        <input id="searchInput" type="text" placeholder="🔍 Search entries…" />
+        <span id="entryCount" class="entry-count"></span>
+      </div>
+
+      <p id="listMessage" class="toast" hidden></p>
       <section id="websiteList" class="site-list" hidden></section>
     </main>
 
@@ -45,7 +61,7 @@
 
         <div class="credentials-header">
           <h3>Credentials</h3>
-          <button id="addCredentialBtn" type="button">+ Add</button>
+          <button id="addCredentialBtn" class="btn--outline" type="button">+ Add</button>
         </div>
         <div id="credentialsContainer" class="credentials-container"></div>
 
@@ -58,10 +74,13 @@
 
     <template id="credentialRowTemplate">
       <div class="credential-row">
-        <input class="credential-name" type="text" placeholder="login label" required />
-        <input class="credential-username" type="text" placeholder="username/email" required />
-        <input class="credential-password" type="password" placeholder="password" required />
-        <button type="button" class="remove-credential">✕</button>
+        <input class="credential-name" type="text" placeholder="Label" required />
+        <input class="credential-username" type="text" placeholder="Username" required />
+        <div class="password-input-wrap">
+          <input class="credential-password" type="password" placeholder="Password" required />
+          <button type="button" class="toggle-pass-btn" tabindex="-1">👁</button>
+        </div>
+        <button type="button" class="remove-credential" title="Remove">✕</button>
       </div>
     </template>
 
