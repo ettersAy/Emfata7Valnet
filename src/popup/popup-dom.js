@@ -1,3 +1,6 @@
+import { t } from "../common/i18n.js";
+
+
 export function createSiteRow(website, index) {
   const row = document.createElement("article");
   row.className = "site-row";
@@ -10,7 +13,7 @@ export function createSiteRow(website, index) {
   const dragHandle = document.createElement("span");
   dragHandle.className = "drag-handle";
   dragHandle.textContent = "⠿";
-  dragHandle.title = "Drag to reorder";
+  dragHandle.title = t("dragHandleTitle");
 
   const top = document.createElement("div");
   top.className = "site-head";
@@ -18,19 +21,19 @@ export function createSiteRow(website, index) {
   const title = document.createElement("strong");
   title.textContent = website.label;
   title.className = "open-site";
-  title.title = `Open ${website.url} — double-click to copy URL`;
+  title.title = t("openSiteTitle", { url: website.url });
 
   const edit = document.createElement("button");
   edit.type = "button";
   edit.className = "icon-btn edit-site";
   edit.textContent = "✏️";
-  edit.title = "Edit entry";
+  edit.title = t("editEntryTitle");
 
   const remove = document.createElement("button");
   remove.type = "button";
   remove.className = "icon-btn delete-site";
   remove.textContent = "🗑";
-  remove.title = "Delete entry";
+  remove.title = t("deleteEntryTitle");
 
   top.append(dragHandle, title, edit, remove);
 
@@ -56,7 +59,7 @@ export function createCredentialChip(websiteId, type, icon) {
 
   const label = document.createElement("span");
   label.className = "chip-label";
-  label.textContent = type === "login" ? "Username" : "Password";
+  label.textContent = type === "login" ? t("chipLabelUsername") : t("chipLabelPassword");
 
   const iconEl = document.createElement("span");
   iconEl.className = "chip-icon";
@@ -81,7 +84,7 @@ export function createEmptyState(message, icon = "📭") {
   iconEl.textContent = icon;
 
   const heading = document.createElement("h3");
-  heading.textContent = "لا توجد مفاتيح بعد";
+  heading.textContent = t("noEntriesYet");
 
   const text = document.createElement("p");
   text.textContent = message;

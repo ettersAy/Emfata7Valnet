@@ -1,3 +1,5 @@
+import { t } from "../common/i18n.js";
+
 import { popupState } from "./popup-state.js";
 
 const dom = {};
@@ -17,7 +19,7 @@ export function collapse() {
   dom.siteList.hidden = true;
   dom.searchBar.hidden = true;
   dom.expandListBtn.hidden = false;
-  dom.expandListBtn.textContent = `📋 المفاتيح (${popupState.websites.length})`;
+  dom.expandListBtn.textContent = t("expandListBtn", { count: popupState.websites.length });
 }
 
 /** Expand the website list. */

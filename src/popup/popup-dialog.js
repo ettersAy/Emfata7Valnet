@@ -2,6 +2,9 @@ import { createWebsite } from "../common/models.js";
 import { encryptSecret } from "../common/crypto.js";
 import { popupState, filteredWebsites } from "./popup-state.js";
 import { renderWebsites, updateEntryCount } from "./popup-render.js";
+import { t } from "../common/i18n.js";
+
+
 import { saveWebsites } from "../common/storage.js";
 
 const dom = {};
@@ -15,7 +18,7 @@ export function openDialog(website = null) {
   dom.siteForm.reset();
 
   if (website) {
-    dom.dialogTitle.textContent = "تعديل الموقع";
+    dom.dialogTitle.textContent = t("editSiteTitle");
     dom.siteUrl.value = website.url;
     dom.siteLogin.value = website.usernameEncrypted
       ? "••••••"
@@ -31,7 +34,7 @@ export function openDialog(website = null) {
       ? JSON.stringify(website.passwordEncrypted)
       : "";
   } else {
-    dom.dialogTitle.textContent = "إضافة موقع";
+    dom.dialogTitle.textContent = t("addSiteTitle");
     dom.siteForm.dataset.originalLogin = "";
     dom.siteForm.dataset.originalPassword = "";
   }

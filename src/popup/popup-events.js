@@ -4,6 +4,8 @@ import { getFieldKeywords, saveWebsites } from "../common/storage.js";
 import { popupState, filteredWebsites } from "./popup-state.js";
 import { renderWebsites, updateEntryCount, showToast } from "./popup-render.js";
 import { openDialog } from "./popup-dialog.js";
+import { t } from "../common/i18n.js";
+
 
 const dom = {};
 
@@ -40,7 +42,7 @@ async function onListClick(event) {
   if (event.target.closest(".open-site")) {
     const normalized = normalizeUrlForOpen(website.url);
     if (!normalized) {
-      showToast(listMessage, "هذا الإدخال ليس عنوان ويب صالح.", "warning");
+      showToast(listMessage, t("notAValidUrl"), "warning");
       return;
     }
     await chrome.tabs.create({ url: normalized });
@@ -59,7 +61,7 @@ async function onListClick(event) {
     await saveWebsites(popupState.websites);
     renderWebsites(filteredWebsites(), siteList);
     updateEntryCount(popupState.websites.length, filteredWebsites().length, entryCount);
-    showToast(listMessage, "تم الحذف.", "success");
+    showToast(listMessage, t("deletedSuccess"), "success");
     return;
   }
 
@@ -75,7 +77,7 @@ async function handleCredentialChipClick(chip, website, clickEvent) {
   const copyType = chip.dataset.copyType;
 
   if (!website.usernameEncrypted || !website.passwordEncrypted) {
-    showToast(listMessage, "بيانات مشفرة مفقودة.", "warning");
+    showToast(listMessage, t("encryptedDataMissing"), "warning");
     return;
   }
 
@@ -86,7 +88,7 @@ async function handleCredentialChipClick(chip, website, clickEvent) {
     const plain = await decryptSecret(website.passwordEncrypted);
     await navigator.clipboard.writeText(plain);
     showCopyIndicator(chip);
-    showToast(listMessage, "تم نسخ كلمة المرور.", "success");
+    showToast(listMessage, t("copiedPassword"), "success");
     return;
   }
 
@@ -95,7 +97,7 @@ async function handleCredentialChipClick(chip, website, clickEvent) {
     const plain = await decryptSecret(website.usernameEncrypted);
     await navigator.clipboard.writeText(plain);
     showCopyIndicator(chip);
-    showToast(listMessage, "تم نسخ اسم المستخدم.", "success");
+    showToast(listMessage, t("copiedUsername"), "success");
     return;
   }
 
@@ -104,7 +106,7 @@ async function handleCredentialChipClick(chip, website, clickEvent) {
 
   const normalized = normalizeUrlForOpen(website.url);
   if (!normalized || new URL(tab.url).hostname !== new URL(normalized).hostname) {
-    showToast(listMessage, "تعذر الملء التلقائي: اسم المضيف غير متطابق.", "warning");
+    showToast(listMessage, t("hostMismatch"), "warning");
     return;
   }
 
@@ -118,7 +120,7 @@ async function handleCredentialChipClick(chip, website, clickEvent) {
       fieldKeywords: await getFieldKeywords()
     }
   });
-  showToast(listMessage, "تم ملء البيانات تلقائياً.", "success");
+  showToast(listMessage, t("autofillSuccess"), "success");
 }
 
 async function onListDblClick(event) {
@@ -133,7 +135,7 @@ async function onListDblClick(event) {
     if (!website) return;
     await navigator.clipboard.writeText(website.url);
     showCopyIndicator(title);
-    showToast(listMessage, "تم نسخ الرابط.", "success");
+    showToast(listMessage, t("copiedUrl"), "success");
     return;
   }
 
@@ -157,7 +159,8 @@ async function onListDblClick(event) {
     if (plain) {
       await navigator.clipboard.writeText(plain);
       showCopyIndicator(chip);
-      showToast(listMessage, `تم نسخ ${copyType === "login" ? "اسم المستخدم" : "كلمة المرور"}.`, "success");
+      const label = copyType === "login" ? t("copiedUsername") : t("copiedPassword");
+      showToast(listMessage, label, "success");
     }
   }
 }
@@ -167,7 +170,7 @@ function showCopyIndicator(el) {
   if (!indicator) {
     indicator = document.createElement("span");
     indicator.className = "copy-indicator";
-    indicator.textContent = "تم النسخ!";
+    indicator.textContent = t("copied");
     el.appendChild(indicator);
   }
   indicator.classList.add("show");

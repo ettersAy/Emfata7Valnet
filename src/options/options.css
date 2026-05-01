@@ -143,6 +143,27 @@ textarea:focus {
 #saveMessage.success { color: var(--success); }
 #saveMessage.error   { color: var(--danger); }
 
+/* ── Select / Dropdown ──────────────────────────────────── */
+select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: auto;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
 /* ── Separator ──────────────────────────────────────────── */
 hr {
   border: none;

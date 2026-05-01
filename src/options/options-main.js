@@ -1,5 +1,6 @@
 import { DEFAULT_FIELD_KEYWORDS } from "../common/constants.js";
 import { getFieldKeywords, saveFieldKeywords, getWebsites, saveWebsites } from "../common/storage.js";
+import { initI18n, t, getLanguages, getCurrentLanguage, saveAndApplyLanguage } from "../common/i18n.js";
 
 /* ── DOM refs ───────────────────────────────────────────── */
 const userKeywords = document.getElementById("userKeywords");
@@ -14,6 +15,7 @@ const exportMessage = document.getElementById("exportMessage");
 const importFile = document.getElementById("importFile");
 const importBtn = document.getElementById("importBtn");
 const importMessage = document.getElementById("importMessage");
+const languageSelect = document.getElementById("languageSelect");
 
 /* ── Wire events ────────────────────────────────────────── */
 document.getElementById("saveSettings").addEventListener("click", onSave);
@@ -23,8 +25,36 @@ passwordKeywords.addEventListener("input", () => renderChips(passwordKeywords.va
 exportJson.addEventListener("click", () => exportData("json"));
 exportCsv.addEventListener("click", () => exportData("csv"));
 importBtn.addEventListener("click", onImport);
+languageSelect.addEventListener("change", onLanguageChange);
 
+// Initialize i18n and then load
+const currentLang = await initI18n();
+populateLanguageSelector(currentLang);
 await load();
+
+/* ── Language Selector ──────────────────────────────────── */
+function populateLanguageSelector(selected) {
+  const languages = getLanguages();
+  languageSelect.innerHTML = "";
+  for (const [code, info] of Object.entries(languages)) {
+    const option = document.createElement("option");
+    option.value = code;
+    option.textContent = info.name;
+    if (code === selected) {
+      option.selected = true;
+    }
+    languageSelect.appendChild(option);
+  }
+}
+
+async function onLanguageChange() {
+  const newLang = languageSelect.value;
+  await saveAndApplyLanguage(newLang);
+  populateLanguageSelector(newLang);
+  if (saveMessage.textContent) {
+    saveMessage.textContent = t("saveSuccess");
+  }
+}
 
 /* ── Load settings ──────────────────────────────────────── */
 async function load() {
@@ -42,7 +72,7 @@ async function onSave() {
     password: parseKeywords(passwordKeywords.value, DEFAULT_FIELD_KEYWORDS.password)
   };
   await saveFieldKeywords(next);
-  saveMessage.textContent = "✅ تم حفظ الإعدادات بنجاح.";
+  saveMessage.textContent = t("saveSuccess");
   saveMessage.className = "success";
   setTimeout(() => {
     saveMessage.textContent = "";
@@ -55,7 +85,7 @@ async function exportData(format) {
   try {
     const websites = await getWebsites();
     if (!websites.length) {
-      exportMessage.textContent = "⚠ لا توجد بيانات للتصدير.";
+      exportMessage.textContent = t("exportNoData");
       exportMessage.className = "msg error";
       return;
     }
@@ -83,10 +113,10 @@ async function exportData(format) {
     a.click();
     URL.revokeObjectURL(url);
 
-    exportMessage.textContent = `✅ تم تصدير ${websites.length} مدخلات بنجاح.`;
+    exportMessage.textContent = t("exportSuccess", { count: websites.length });
     exportMessage.className = "msg success";
   } catch (err) {
-    exportMessage.textContent = "❌ فشل التصدير: " + err.message;
+    exportMessage.textContent = t("exportFailed", { message: err.message });
     exportMessage.className = "msg error";
   }
 }
@@ -95,7 +125,7 @@ async function exportData(format) {
 async function onImport() {
   const file = importFile.files[0];
   if (!file) {
-    importMessage.textContent = "⚠ الرجاء اختيار ملف.";
+    importMessage.textContent = t("importNoFile");
     importMessage.className = "msg error";
     return;
   }
@@ -110,11 +140,11 @@ async function onImport() {
     } else if (file.name.endsWith(".csv")) {
       websites = csvToWebsites(text);
     } else {
-      throw new Error("تنسيق ملف غير مدعوم. استخدم JSON أو CSV.");
+      throw new Error(t("importInvalidFormat"));
     }
 
     if (!websites.length) {
-      importMessage.textContent = "⚠ الملف لا يحتوي على بيانات صالحة.";
+      importMessage.textContent = t("importNoValidData");
       importMessage.className = "msg error";
       return;
     }
@@ -122,18 +152,18 @@ async function onImport() {
     // Validate each entry has required fields
     for (const w of websites) {
       if (!w.id || !w.url) {
-        throw new Error("ملف غير صالح: كل مدخلة تحتاج id و url.");
+        throw new Error(t("importInvalidEntry"));
       }
     }
 
     await saveWebsites(websites);
-    importMessage.textContent = `✅ تم استيراد ${websites.length} مدخلات بنجاح.`;
+    importMessage.textContent = t("importSuccess", { count: websites.length });
     importMessage.className = "msg success";
 
     // Reset file input
     importFile.value = "";
   } catch (err) {
-    importMessage.textContent = "❌ فشل الاستيراد: " + err.message;
+    importMessage.textContent = t("importFailed", { message: err.message });
     importMessage.className = "msg error";
   }
 }

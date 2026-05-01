@@ -5,6 +5,7 @@ import {
   unlockMasterPassword,
   lockVault as cryptoLock
 } from "../common/crypto.js";
+import { t } from "../common/i18n.js";
 
 const SESSION_KEYS = {
   MASTER_PASSWORD: "session_master_password",
@@ -41,15 +42,15 @@ export async function bootstrapVaultGate() {
   const { vaultHint, passwordStrength, unlockBtn } = domRefs;
 
   vaultHint.textContent = configured
-    ? "أدخل المفتاح الرئيسي مرة واحدة يومياً."
-    : "أنشئ مفتاحك الرئيسي لتشفير الخزنة.";
+    ? t("vaultHintConfigured")
+    : t("vaultHintNew");
 
   if (configured) {
     passwordStrength.hidden = true;
-    unlockBtn.textContent = "فتح";
+    unlockBtn.textContent = t("unlockBtn");
   } else {
     passwordStrength.hidden = false;
-    unlockBtn.textContent = "إنشاء الخزنة";
+    unlockBtn.textContent = t("createVaultBtn");
   }
 }
 
@@ -59,7 +60,7 @@ export async function handleUnlock() {
   const password = masterPasswordInput.value;
 
   if (!password || password.length < 4) {
-    vaultMessage.textContent = "استخدم 4 أحرف على الأقل.";
+    vaultMessage.textContent = t("minLengthError");
     return false;
   }
 
@@ -69,7 +70,7 @@ export async function handleUnlock() {
     : await setupMasterPassword(password).then(() => true);
 
   if (!success) {
-    vaultMessage.textContent = "مفتاح رئيسي غير صالح.";
+    vaultMessage.textContent = t("invalidMasterPassword");
     shakeElement(vaultGate);
     return false;
   }
@@ -81,7 +82,7 @@ export async function handleUnlock() {
   });
 
   masterPasswordInput.value = "";
-  vaultMessage.textContent = "تم فتح الخزنة.";
+  vaultMessage.textContent = t("vaultUnlocked");
   vaultMessage.style.color = "var(--success)";
   return true;
 }
