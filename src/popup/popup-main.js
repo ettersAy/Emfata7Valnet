@@ -1,14 +1,34 @@
-import { createWebsite } from "../common/models.js";
-import { getWebsites, saveWebsites } from "../common/storage.js";
+import { createWebsite, normalizeUrlForOpen } from "../common/models.js";
+import { getFieldKeywords, getWebsites, saveWebsites } from "../common/storage.js";
+import {
+  decryptSecret,
+  encryptSecret,
+  isMasterPasswordConfigured,
+  isUnlocked,
+  setupMasterPassword,
+  unlockMasterPassword
+} from "../common/crypto.js";
 import { popupState } from "./popup-state.js";
 import { renderWebsites } from "./popup-render.js";
+
+const SESSION_KEYS = {
+  MASTER_PASSWORD: "session_master_password",
+  UNLOCK_DATE: "session_unlock_date"
+};
 
 const siteList = document.getElementById("websiteList");
 const siteDialog = document.getElementById("siteDialog");
 const siteForm = document.getElementById("siteForm");
 const credentialsContainer = document.getElementById("credentialsContainer");
 const credentialTemplate = document.getElementById("credentialRowTemplate");
+const vaultGate = document.getElementById("vaultGate");
+const vaultHint = document.getElementById("vaultHint");
+const vaultMessage = document.getElementById("vaultMessage");
+const masterPasswordInput = document.getElementById("masterPassword");
+const listMessage = document.getElementById("listMessage");
 
+const unlockBtn = document.getElementById("unlockVaultBtn");
+unlockBtn.addEventListener("click", onUnlock);
 document.getElementById("addSiteBtn").addEventListener("click", () => openDialog());
 document.getElementById("openSettingsBtn").addEventListener("click", () => chrome.runtime.openOptionsPage());
 document.getElementById("cancelSiteDialog").addEventListener("click", () => siteDialog.close());
@@ -16,11 +36,63 @@ document.getElementById("addCredentialBtn").addEventListener("click", () => addC
 siteList.addEventListener("click", onListClick);
 siteForm.addEventListener("submit", onSiteSubmit);
 
-await loadAndRender();
+await bootstrap();
+
+async function bootstrap() {
+  const configured = await isMasterPasswordConfigured();
+  vaultHint.textContent = configured
+    ? "Enter your master key once per day."
+    : "Create your master key to encrypt the vault.";
+
+  if (await trySessionAutoUnlock()) {
+    await loadAndRender();
+    return;
+  }
+
+  siteList.hidden = true;
+  vaultGate.hidden = false;
+}
+
+async function trySessionAutoUnlock() {
+  if (isUnlocked()) return true;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const data = await chrome.storage.session.get([SESSION_KEYS.MASTER_PASSWORD, SESSION_KEYS.UNLOCK_DATE]);
+  if (data[SESSION_KEYS.UNLOCK_DATE] !== today || !data[SESSION_KEYS.MASTER_PASSWORD]) {
+    return false;
+  }
+
+  return unlockMasterPassword(data[SESSION_KEYS.MASTER_PASSWORD]);
+}
+
+async function onUnlock() {
+  const password = masterPasswordInput.value;
+  if (!password || password.length < 4) {
+    vaultMessage.textContent = "Use at least 4 characters.";
+    return;
+  }
+
+  const configured = await isMasterPasswordConfigured();
+  const success = configured ? await unlockMasterPassword(password) : await (setupMasterPassword(password).then(() => true));
+
+  if (!success) {
+    vaultMessage.textContent = "Invalid master key.";
+    return;
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  await chrome.storage.session.set({ [SESSION_KEYS.MASTER_PASSWORD]: password, [SESSION_KEYS.UNLOCK_DATE]: today });
+
+  masterPasswordInput.value = "";
+  vaultMessage.textContent = "Vault unlocked.";
+  await loadAndRender();
+}
 
 async function loadAndRender() {
   popupState.websites = await getWebsites();
   renderWebsites(popupState.websites, siteList);
+  siteList.hidden = false;
+  vaultGate.hidden = true;
 }
 
 function openDialog(website = null) {
@@ -32,7 +104,7 @@ function openDialog(website = null) {
     document.getElementById("siteDialogTitle").textContent = "Edit website";
     siteForm.url.value = website.url;
     siteForm.label.value = website.label;
-    website.credentials.forEach((cred) => addCredentialRow(cred));
+    website.credentials.forEach((cred) => addCredentialRow({ ...cred, username: "", password: "" }));
   } else {
     document.getElementById("siteDialogTitle").textContent = "Add website";
     addCredentialRow();
@@ -61,12 +133,14 @@ function addCredentialRow(credential = null) {
 
 async function onSiteSubmit(event) {
   event.preventDefault();
-  const credentials = Array.from(credentialsContainer.querySelectorAll(".credential-row")).map((row) => ({
-    id: row.dataset.credentialId ?? crypto.randomUUID(),
-    label: row.querySelector(".credential-name").value.trim(),
-    username: row.querySelector(".credential-username").value.trim(),
-    password: row.querySelector(".credential-password").value
-  }));
+  const credentials = await Promise.all(
+    Array.from(credentialsContainer.querySelectorAll(".credential-row")).map(async (row) => ({
+      id: row.dataset.credentialId ?? crypto.randomUUID(),
+      label: row.querySelector(".credential-name").value.trim(),
+      usernameEncrypted: await encryptSecret(row.querySelector(".credential-username").value.trim()),
+      passwordEncrypted: await encryptSecret(row.querySelector(".credential-password").value)
+    }))
+  );
 
   const website = createWebsite({
     id: popupState.editWebsiteId ?? undefined,
@@ -85,6 +159,7 @@ async function onSiteSubmit(event) {
 }
 
 async function onListClick(event) {
+  listMessage.textContent = "";
   const row = event.target.closest(".site-row");
   if (!row) return;
 
@@ -92,7 +167,12 @@ async function onListClick(event) {
   if (!website) return;
 
   if (event.target.closest(".open-site")) {
-    await chrome.tabs.create({ url: website.url });
+    const normalized = normalizeUrlForOpen(website.url);
+    if (!normalized) {
+      listMessage.textContent = "This entry is not a valid web address.";
+      return;
+    }
+    await chrome.tabs.create({ url: normalized });
     return;
   }
 
@@ -110,11 +190,26 @@ async function onListClick(event) {
 
   const credentialChip = event.target.closest(".credential-chip");
   if (credentialChip) {
-    await chrome.runtime.sendMessage({
-      type: "AUTOFILL_CREDENTIAL",
+    const credential = website.credentials.find((item) => item.id === credentialChip.dataset.credentialId);
+    if (!credential) return;
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id || !tab.url) return;
+
+    const normalized = normalizeUrlForOpen(website.url);
+    if (!normalized || new URL(tab.url).hostname !== new URL(normalized).hostname) {
+      listMessage.textContent = "Autofill blocked: host mismatch.";
+      return;
+    }
+
+    await chrome.tabs.sendMessage(tab.id, {
+      type: "RUN_AUTOFILL",
       payload: {
-        websiteId: credentialChip.dataset.websiteId,
-        credentialId: credentialChip.dataset.credentialId
+        credential: {
+          username: await decryptSecret(credential.usernameEncrypted),
+          password: await decryptSecret(credential.passwordEncrypted)
+        },
+        fieldKeywords: await getFieldKeywords()
       }
     });
   }
