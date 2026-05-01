@@ -353,6 +353,85 @@ const TRANSLATIONS = {
     hi: "✅ सेटिंग्स सफलतापूर्वक सहेजी गईं।", zh: "✅ 设置已成功保存。",
   },
 
+  /* ── Change Master Key ─────────────────────────────────── */
+  changeMasterKeyTitle: {
+    ar: "🔐 تغيير المفتاح الرئيسي", en: "🔐 Change Master Key",
+    fr: "🔐 Changer le mot de passe principal", es: "🔐 Cambiar la contraseña maestra",
+    hi: "🔐 मास्टर पासवर्ड बदलें", zh: "🔐 更改主密码",
+  },
+  changeMasterKeyDesc: {
+    ar: "سيتم فك تشفير جميع بيانات الخزنة وإعادة تشفيرها بالمفتاح الجديد.",
+    en: "All vault data will be decrypted and re-encrypted with the new key.",
+    fr: "Toutes les données du coffre seront déchiffrées et rechiffrées avec la nouvelle clé.",
+    es: "Todos los datos del cofre se descifrarán y volverán a cifrar con la nueva clave.",
+    hi: "सभी तिजोरी डेटा डिक्रिप्ट हो जाएगा और नई कुंजी से फिर से एन्क्रिप्ट हो जाएगा।",
+    zh: "所有保险库数据将被解密并用新密钥重新加密。",
+  },
+  currentMasterKeyLabel: {
+    ar: "المفتاح الرئيسي الحالي", en: "Current Master Key",
+    fr: "Mot de passe principal actuel", es: "Contraseña maestra actual",
+    hi: "वर्तमान मास्टर पासवर्ड", zh: "当前主密码",
+  },
+  newMasterKeyLabel: {
+    ar: "المفتاح الرئيسي الجديد", en: "New Master Key",
+    fr: "Nouveau mot de passe principal", es: "Nueva contraseña maestra",
+    hi: "नया मास्टर पासवर्ड", zh: "新主密码",
+  },
+  confirmMasterKeyLabel: {
+    ar: "تأكيد المفتاح الرئيسي الجديد", en: "Confirm New Master Key",
+    fr: "Confirmer le nouveau mot de passe principal", es: "Confirmar la nueva contraseña maestra",
+    hi: "नए मास्टर पासवर्ड की पुष्टि करें", zh: "确认新主密码",
+  },
+  changeMasterKeyBtn: {
+    ar: "🔐 تغيير المفتاح", en: "🔐 Change Key",
+    fr: "🔐 Changer la clé", es: "🔐 Cambiar clave",
+    hi: "🔐 कुंजी बदलें", zh: "🔐 更改密钥",
+  },
+  masterKeyMismatch: {
+    ar: "❌ المفتاحان الجديدان غير متطابقين.", en: "❌ New keys do not match.",
+    fr: "❌ Les nouvelles clés ne correspondent pas.", es: "❌ Las nuevas claves no coinciden.",
+    hi: "❌ नई कुंजियाँ मेल नहीं खातीं।", zh: "❌ 新密钥不匹配。",
+  },
+  masterKeyChangeSuccess: {
+    ar: "✅ تم تغيير المفتاح الرئيسي بنجاح وإعادة تشفير جميع البيانات.",
+    en: "✅ Master key changed successfully. All data has been re-encrypted.",
+    fr: "✅ Clé principale modifiée avec succès. Toutes les données ont été rechiffrées.",
+    es: "✅ Clave maestra cambiada correctamente. Todos los datos han sido recifrados.",
+    hi: "✅ मास्टर कुंजी सफलतापूर्वक बदल दी गई। सभी डेटा फिर से एन्क्रिप्ट हो गया।",
+    zh: "✅ 主密钥更改成功。所有数据已重新加密。",
+  },
+  masterKeyChangeFailed: {
+    ar: "❌ فشل تغيير المفتاح الرئيسي. تحقق من المفتاح الحالي.",
+    en: "❌ Failed to change master key. Check your current key.",
+    fr: "❌ Échec du changement de clé principale. Vérifiez votre clé actuelle.",
+    es: "❌ No se pudo cambiar la clave maestra. Verifique su clave actual.",
+    hi: "❌ मास्टर कुंजी बदलने में विफल। अपनी वर्तमान कुंजी जांचें।",
+    zh: "❌ 更改主密钥失败。请检查您当前的密钥。",
+  },
+  masterKeySamePassword: {
+    ar: "⚠ المفتاح الجديد مطابق للمفتاح الحالي.",
+    en: "⚠ New key is the same as the current key.",
+    fr: "⚠ La nouvelle clé est identique à la clé actuelle.",
+    es: "⚠ La nueva clave es igual a la clave actual.",
+    hi: "⚠ नई कुंजी वर्तमान कुंजी के समान है।",
+    zh: "⚠ 新密钥与当前密钥相同。",
+  },
+  currentMasterKeyPlaceholder: {
+    ar: "أدخل المفتاح الرئيسي الحالي", en: "Enter current master key",
+    fr: "Entrez le mot de passe principal actuel", es: "Ingrese la contraseña maestra actual",
+    hi: "वर्तमान मास्टर पासवर्ड दर्ज करें", zh: "输入当前主密码",
+  },
+  newMasterKeyPlaceholder: {
+    ar: "أدخل المفتاح الرئيسي الجديد (4 أحرف على الأقل)", en: "Enter new master key (at least 4 characters)",
+    fr: "Entrez le nouveau mot de passe principal (4 caractères minimum)", es: "Ingrese la nueva contraseña maestra (al menos 4 caracteres)",
+    hi: "नया मास्टर पासवर्ड दर्ज करें (कम से कम 4 अक्षर)", zh: "输入新主密码（至少4个字符）",
+  },
+  confirmMasterKeyPlaceholder: {
+    ar: "أعد إدخال المفتاح الرئيسي الجديد", en: "Re-enter new master key",
+    fr: "Ressaisissez le nouveau mot de passe principal", es: "Vuelva a ingresar la nueva contraseña maestra",
+    hi: "नया मास्टर पासवर्ड फिर से दर्ज करें", zh: "重新输入新主密码",
+  },
+
   /* ── Export ────────────────────────────────────────────── */
   exportTitle: {
     ar: "📤 تصدير الخزنة", en: "📤 Export Vault", fr: "📤 Exporter le coffre",

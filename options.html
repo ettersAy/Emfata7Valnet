@@ -24,6 +24,28 @@
         </label>
       </div>
 
+      <!-- Change Master Key -->
+      <div class="card">
+        <h2 data-i18n="changeMasterKeyTitle">🔐 تغيير المفتاح الرئيسي</h2>
+        <p data-i18n="changeMasterKeyDesc">
+          سيتم فك تشفير جميع بيانات الخزنة وإعادة تشفيرها بالمفتاح الجديد.
+        </p>
+        <label>
+          <span data-i18n="currentMasterKeyLabel">المفتاح الرئيسي الحالي</span>
+          <input type="password" id="currentMasterKey" class="master-key-input" autocomplete="off" data-i18n-placeholder="currentMasterKeyPlaceholder" placeholder="Enter current master key" />
+        </label>
+        <label>
+          <span data-i18n="newMasterKeyLabel">المفتاح الرئيسي الجديد</span>
+          <input type="password" id="newMasterKey" class="master-key-input" autocomplete="off" data-i18n-placeholder="newMasterKeyPlaceholder" placeholder="Enter new master key (at least 4 characters)" />
+        </label>
+        <label>
+          <span data-i18n="confirmMasterKeyLabel">تأكيد المفتاح الرئيسي الجديد</span>
+          <input type="password" id="confirmMasterKey" class="master-key-input" autocomplete="off" data-i18n-placeholder="confirmMasterKeyPlaceholder" placeholder="Re-enter new master key" />
+        </label>
+        <button id="changeMasterKeyBtn" class="primary danger" data-i18n="changeMasterKeyBtn">🔐 تغيير المفتاح</button>
+        <p id="masterKeyMessage" aria-live="polite" class="msg"></p>
+      </div>
+
       <div class="card">
         <h2 data-i18n="userKeywordsTitle">🔑 كلمات حقل المستخدم</h2>
         <p data-i18n="userKeywordsDesc">كلمات مفصولة بفواصل لتحديد حقول اسم المستخدم / البريد الإلكتروني.</p>

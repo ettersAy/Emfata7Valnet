@@ -132,6 +132,39 @@ textarea:focus {
 
 .primary:active { transform: scale(0.98); }
 
+.primary.danger {
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+}
+
+.primary.danger:hover {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  box-shadow: 0 0 24px rgba(220, 38, 38, 0.25);
+}
+
+.master-key-input {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  transition: all 0.2s ease;
+}
+
+.master-key-input:focus {
+  outline: none;
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
 #saveMessage {
   margin-top: 12px;
   font-size: 13px;
