@@ -1,5 +1,173 @@
-:root { color-scheme: light dark; font-family: Inter, system-ui, sans-serif; }
-body { margin: 0; background: #0f172a; color: #e2e8f0; }
-.settings { max-width: 760px; margin: 24px auto; padding: 20px; display: grid; gap: 12px; }
-textarea { border-radius: 8px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; padding: 8px; }
-.primary { background: #2563eb; border: none; color: #fff; border-radius: 8px; padding: 10px 12px; width: fit-content; }
+/* ── Cyber Vault — Settings Design ───────────────────────── */
+:root {
+  --bg-deep: #060b14;
+  --bg-card: rgba(15, 23, 42, 0.75);
+  --bg-input: rgba(11, 18, 34, 0.9);
+  --border-subtle: rgba(148, 163, 184, 0.12);
+  --border-glow: rgba(99, 102, 241, 0.35);
+  --border-active: rgba(99, 102, 241, 0.6);
+  --text-primary: #e5e7eb;
+  --text-muted: #94a3b8;
+  --accent: #6366f1;
+  --accent-glow: #818cf8;
+  --success: #34d399;
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 80% 80%, rgba(34, 211, 238, 0.03) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.settings {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.settings header {
+  margin-bottom: 28px;
+}
+
+.settings h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--text-primary), #c7d2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.settings .subtitle {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  padding: 22px 24px;
+  backdrop-filter: blur(10px);
+  margin-bottom: 16px;
+}
+
+.card h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.card p {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  resize: vertical;
+  transition: all 0.2s ease;
+  min-height: 80px;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.primary {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.primary:hover {
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.25);
+  transform: translateY(-1px);
+}
+
+.primary:active { transform: scale(0.98); }
+
+#saveMessage {
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 20px;
+  transition: color 0.3s;
+}
+
+#saveMessage.success { color: var(--success); }
+#saveMessage.error   { color: #f87171; }
+
+/* tags / chips for keyword preview */
+.keyword-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.keyword-chip {
+  font-size: 11px;
+  padding: 3px 10px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid var(--border-glow);
+  border-radius: 999px;
+  color: var(--accent-glow);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.35); }

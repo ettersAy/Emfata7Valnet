@@ -1,4 +1,6 @@
 export const popupState = {
   websites: [],
-  editWebsiteId: null
+  editWebsiteId: null,
+  searchQuery: "",
+  _toastTimer: null
 };

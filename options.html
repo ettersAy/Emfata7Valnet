@@ -8,17 +8,35 @@
   </head>
   <body>
     <main class="settings">
-      <h1>Field Keyword Settings</h1>
-      <p>Add comma-separated words used for identifying username/email and password fields.</p>
-      <label>
-        User field keywords
-        <textarea id="userKeywords" rows="4"></textarea>
-      </label>
-      <label>
-        Password field keywords
-        <textarea id="passwordKeywords" rows="4"></textarea>
-      </label>
-      <button id="saveSettings" class="primary">Save settings</button>
+      <header>
+        <h1>⚙ Field Keyword Settings</h1>
+        <p class="subtitle">
+          Customize the keywords used to detect username and password fields
+          during autofill.
+        </p>
+      </header>
+
+      <div class="card">
+        <h2>🔑 User Field Keywords</h2>
+        <p>Comma-separated words that identify username / email fields.</p>
+        <label>
+          Keywords
+          <textarea id="userKeywords" rows="3" placeholder="email, user, username, login, identifier"></textarea>
+        </label>
+        <div id="userKeywordPreview" class="keyword-chips"></div>
+      </div>
+
+      <div class="card">
+        <h2>🔒 Password Field Keywords</h2>
+        <p>Comma-separated words that identify password fields.</p>
+        <label>
+          Keywords
+          <textarea id="passwordKeywords" rows="3" placeholder="password, pwd, passcode, pin"></textarea>
+        </label>
+        <div id="passwordKeywordPreview" class="keyword-chips"></div>
+      </div>
+
+      <button id="saveSettings" class="primary">💾 Save Settings</button>
       <p id="saveMessage" aria-live="polite"></p>
     </main>
     <script type="module" src="src/options/options-main.js"></script>
