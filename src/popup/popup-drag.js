@@ -73,7 +73,7 @@ async function onDrop(e) {
     .filter(Boolean);
 
   await saveWebsites(popupState.websites);
-  renderWebsites(filteredWebsites(), list);
+  await renderWebsites(filteredWebsites(), list);
   updateEntryCount(
     popupState.websites.length,
     filteredWebsites().length,

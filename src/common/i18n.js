@@ -148,14 +148,26 @@ const TRANSLATIONS = {
     hi: "पुनर्क्रमित करने के लिए खींचें", zh: "拖拽以重新排序",
   },
 
-  /* ── Credential Chips ──────────────────────────────────── */
-  chipLabelUsername: {
-    ar: "اسم المستخدم", en: "Username", fr: "Nom d'utilisateur",
-    es: "Nombre de usuario", hi: "उपयोगकर्ता नाम", zh: "用户名",
+  /* ── Credential Pairs ──────────────────────────────────── */
+  showPasswordTitle: {
+    ar: "إظهار كلمة المرور", en: "Show password", fr: "Afficher le mot de passe",
+    es: "Mostrar contraseña", hi: "पासवर्ड दिखाएं", zh: "显示密码",
   },
-  chipLabelPassword: {
-    ar: "كلمة المرور", en: "Password", fr: "Mot de passe",
-    es: "Contraseña", hi: "पासवर्ड", zh: "密码",
+  hidePasswordTitle: {
+    ar: "إخفاء كلمة المرور", en: "Hide password", fr: "Masquer le mot de passe",
+    es: "Ocultar contraseña", hi: "पासवर्ड छिपाएं", zh: "隐藏密码",
+  },
+  fillCredentialsTitle: {
+    ar: "ملء بيانات الدخول", en: "Fill credentials", fr: "Remplir les identifiants",
+    es: "Rellenar credenciales", hi: "क्रेडेंशियल भरें", zh: "填写凭据",
+  },
+  credentialsListTitle: {
+    ar: "بيانات الدخول", en: "Credentials", fr: "Identifiants",
+    es: "Credenciales", hi: "क्रेडेंशियल", zh: "凭据",
+  },
+  addCredentialBtn: {
+    ar: "+ إضافة بيانات دخول", en: "+ Add credentials", fr: "+ Ajouter des identifiants",
+    es: "+ Agregar credenciales", hi: "+ क्रेडेंशियल जोड़ें", zh: "+ 添加凭据",
   },
 
   /* ── Toast Messages ────────────────────────────────────── */

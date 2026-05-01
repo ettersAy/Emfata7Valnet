@@ -1,7 +1,8 @@
 import { t } from "../common/i18n.js";
+import { getDisplayUrl } from "../common/models.js";
 
 
-export function createSiteRow(website, index) {
+export function createSiteRow(website, index, decryptedCredentials = []) {
   const row = document.createElement("article");
   row.className = "site-row";
   row.dataset.websiteId = website.id;
@@ -19,9 +20,10 @@ export function createSiteRow(website, index) {
   top.className = "site-head";
 
   const title = document.createElement("strong");
-  title.textContent = website.label;
+  title.textContent = getDisplayUrl(website.url);
   title.className = "open-site";
-  title.title = t("openSiteTitle", { url: website.url });
+  // Full URL in tooltip, shown on hover
+  title.title = website.url;
 
   const edit = document.createElement("button");
   edit.type = "button";
@@ -40,33 +42,51 @@ export function createSiteRow(website, index) {
   const credWrap = document.createElement("div");
   credWrap.className = "cred-wrap";
 
-  if (website.usernameEncrypted || website.passwordEncrypted) {
-    const loginChip = createCredentialChip(website.id, "login", "👤");
-    const passChip = createCredentialChip(website.id, "password", "🔐");
-    credWrap.append(loginChip, passChip);
+  if (decryptedCredentials.length > 0) {
+    decryptedCredentials.forEach((cred) => {
+      credWrap.appendChild(createCredentialPair(website.id, cred));
+    });
   }
 
   row.append(top, credWrap);
   return row;
 }
 
-export function createCredentialChip(websiteId, type, icon) {
-  const chip = document.createElement("button");
-  chip.className = "credential-chip";
-  chip.type = "button";
-  chip.dataset.websiteId = websiteId;
-  chip.dataset.copyType = type;
+/**
+ * Create a credential pair row: [login/email] 🔒 [fill]
+ */
+export function createCredentialPair(websiteId, cred) {
+  const pair = document.createElement("div");
+  pair.className = "cred-pair";
+  pair.dataset.websiteId = websiteId;
+  pair.dataset.credId = cred.id;
 
-  const label = document.createElement("span");
-  label.className = "chip-label";
-  label.textContent = type === "login" ? t("chipLabelUsername") : t("chipLabelPassword");
+  // Login/email display (not hidden)
+  const loginSpan = document.createElement("span");
+  loginSpan.className = "cred-pair__login";
+  loginSpan.textContent = cred.login || "";
+  loginSpan.title = cred.login || "";
 
-  const iconEl = document.createElement("span");
-  iconEl.className = "chip-icon";
-  iconEl.textContent = icon;
+  // Lock emoji — toggle password visibility
+  const lockBtn = document.createElement("button");
+  lockBtn.type = "button";
+  lockBtn.className = "cred-pair__lock";
+  lockBtn.textContent = "🔒";
+  lockBtn.title = t("showPasswordTitle");
+  lockBtn.dataset.credId = cred.id;
+  lockBtn.dataset.websiteId = websiteId;
 
-  chip.append(label, iconEl);
-  return chip;
+  // Fill emoji — autofill inputs
+  const fillBtn = document.createElement("button");
+  fillBtn.type = "button";
+  fillBtn.className = "cred-pair__fill";
+  fillBtn.textContent = "📋";
+  fillBtn.title = t("fillCredentialsTitle");
+  fillBtn.dataset.credId = cred.id;
+  fillBtn.dataset.websiteId = websiteId;
+
+  pair.append(loginSpan, lockBtn, fillBtn);
+  return pair;
 }
 
 export function clearElement(element) {

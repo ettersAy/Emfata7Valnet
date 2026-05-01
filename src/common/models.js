@@ -1,16 +1,45 @@
-export function createWebsite({ id = crypto.randomUUID(), url, label, usernameEncrypted, passwordEncrypted, order }) {
+export function createWebsite({ id = crypto.randomUUID(), url, label, credentials, order }) {
   return {
     id,
     url: sanitizeAddress(url),
     label: (label || url).trim(),
-    usernameEncrypted: usernameEncrypted ?? null,
-    passwordEncrypted: passwordEncrypted ?? null,
+    credentials: (credentials || []).map(c => ({
+      id: c.id || crypto.randomUUID(),
+      loginEncrypted: c.loginEncrypted ?? null,
+      passwordEncrypted: c.passwordEncrypted ?? null
+    })),
     order: order ?? Date.now()
+  };
+}
+
+export function createCredential({ id = crypto.randomUUID(), loginEncrypted, passwordEncrypted }) {
+  return {
+    id,
+    loginEncrypted: loginEncrypted ?? null,
+    passwordEncrypted: passwordEncrypted ?? null
   };
 }
 
 export function sanitizeAddress(value) {
   return value.trim();
+}
+
+/**
+ * Extract a concise hostname for display (max 20 chars).
+ */
+export function getDisplayUrl(url) {
+  try {
+    const urlStr = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    const parsed = new URL(urlStr);
+    let hostname = parsed.hostname.replace(/^www\./, '');
+    if (hostname.length > 20) {
+      hostname = hostname.slice(0, 17) + '...';
+    }
+    return hostname;
+  } catch {
+    // Not a URL — just truncate
+    return url.length > 20 ? url.slice(0, 17) + '...' : url;
+  }
 }
 
 export function normalizeUrlForOpen(raw) {

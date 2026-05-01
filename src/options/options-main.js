@@ -192,15 +192,17 @@ function renderChips(raw, container) {
 }
 
 function websitesToCsv(websites) {
-  const header = "id,url,label,usernameEncrypted,passwordEncrypted,order";
+  const header = "id,url,label,credentials,order";
   const rows = websites.map((w) => {
-    const ue = w.usernameEncrypted
-      ? `${w.usernameEncrypted.iv}:${w.usernameEncrypted.value}`
+    // Serialize credentials array as JSON
+    const credsJson = (w.credentials || []).length > 0
+      ? JSON.stringify(w.credentials.map(c => ({
+          id: c.id,
+          loginEncrypted: c.loginEncrypted || null,
+          passwordEncrypted: c.passwordEncrypted || null
+        })))
       : "";
-    const pe = w.passwordEncrypted
-      ? `${w.passwordEncrypted.iv}:${w.passwordEncrypted.value}`
-      : "";
-    return [w.id, escapeCsv(w.url), escapeCsv(w.label), ue, pe, w.order || 0].join(",");
+    return [w.id, escapeCsv(w.url), escapeCsv(w.label), escapeCsv(credsJson), w.order || 0].join(",");
   });
   return [header, ...rows].join("\n");
 }
@@ -218,24 +220,40 @@ function csvToWebsites(csv) {
       obj[h.trim()] = (values[i] || "").trim();
     });
 
-    // Reconstruct encrypted fields
-    let usernameEncrypted = null;
-    let passwordEncrypted = null;
-    if (obj.usernameEncrypted && obj.usernameEncrypted.includes(":")) {
-      const [iv, val] = obj.usernameEncrypted.split(":");
-      usernameEncrypted = { iv, value: val };
-    }
-    if (obj.passwordEncrypted && obj.passwordEncrypted.includes(":")) {
-      const [iv, val] = obj.passwordEncrypted.split(":");
-      passwordEncrypted = { iv, value: val };
+    let credentials = [];
+    if (obj.credentials) {
+      try {
+        const parsed = JSON.parse(unescapeCsv(obj.credentials));
+        if (Array.isArray(parsed)) {
+          credentials = parsed.map(c => ({
+            id: c.id,
+            loginEncrypted: c.loginEncrypted || null,
+            passwordEncrypted: c.passwordEncrypted || null
+          }));
+        }
+      } catch {
+        // Attempt to parse old format (single credential)
+        if (obj.usernameEncrypted || obj.passwordEncrypted) {
+          let loginEncrypted = null;
+          let passwordEncrypted = null;
+          if (obj.usernameEncrypted && obj.usernameEncrypted.includes(":")) {
+            const [iv, val] = obj.usernameEncrypted.split(":");
+            loginEncrypted = { iv, value: val };
+          }
+          if (obj.passwordEncrypted && obj.passwordEncrypted.includes(":")) {
+            const [iv, val] = obj.passwordEncrypted.split(":");
+            passwordEncrypted = { iv, value: val };
+          }
+          credentials = [{ id: crypto.randomUUID(), loginEncrypted, passwordEncrypted }];
+        }
+      }
     }
 
     return {
       id: obj.id,
       url: unescapeCsv(obj.url || ""),
       label: unescapeCsv(obj.label || obj.url || ""),
-      usernameEncrypted,
-      passwordEncrypted,
+      credentials,
       order: parseInt(obj.order, 10) || Date.now()
     };
   });

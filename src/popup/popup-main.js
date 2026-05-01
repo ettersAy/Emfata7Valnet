@@ -31,9 +31,8 @@ const dom = {
   // Dialog refs
   dialogTitle: document.getElementById("siteDialogTitle"),
   siteUrl: document.getElementById("siteUrl"),
-  siteLogin: document.getElementById("siteLogin"),
-  sitePassword: document.getElementById("sitePassword"),
-  dialogTogglePass: document.getElementById("dialogTogglePass"),
+  credentialPairs: document.getElementById("credentialPairs"),
+  addCredentialBtn: document.getElementById("addCredentialBtn"),
   cancelBtn: document.getElementById("cancelSiteDialog"),
 };
 
@@ -73,13 +72,6 @@ dom.togglePassBtn.addEventListener("click", () => {
   const isPass = dom.masterPasswordInput.type === "password";
   dom.masterPasswordInput.type = isPass ? "text" : "password";
   dom.togglePassBtn.textContent = isPass ? "🙈" : "👁";
-});
-
-// Password visibility toggle in dialog
-dom.dialogTogglePass.addEventListener("click", () => {
-  const isPass = dom.sitePassword.type === "password";
-  dom.sitePassword.type = isPass ? "text" : "password";
-  dom.dialogTogglePass.textContent = isPass ? "🙈" : "👁";
 });
 
 // Password strength meter
@@ -130,7 +122,7 @@ async function loadAndRender() {
   popupState.websites.sort((a, b) => (b.order || 0) - (a.order || 0));
   popupState.searchQuery = "";
   dom.searchInput.value = "";
-  renderWebsites(popupState.websites, dom.siteList);
+  await renderWebsites(popupState.websites, dom.siteList);
   updateEntryCount(popupState.websites.length, popupState.websites.length, dom.entryCount);
   dom.siteList.hidden = false;
   dom.searchBar.hidden = false;
