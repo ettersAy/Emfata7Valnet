@@ -1,6 +1,7 @@
 import { DEFAULT_FIELD_KEYWORDS } from "../common/constants.js";
 import { getFieldKeywords, saveFieldKeywords, getWebsites, saveWebsites } from "../common/storage.js";
 import { initI18n, t, getLanguages, getCurrentLanguage, saveAndApplyLanguage } from "../common/i18n.js";
+import { changeMasterPassword, isMasterPasswordConfigured } from "../common/crypto.js";
 
 /* ── DOM refs ───────────────────────────────────────────── */
 const userKeywords = document.getElementById("userKeywords");
@@ -17,6 +18,13 @@ const importBtn = document.getElementById("importBtn");
 const importMessage = document.getElementById("importMessage");
 const languageSelect = document.getElementById("languageSelect");
 
+// Change master key refs
+const currentMasterKeyInput = document.getElementById("currentMasterKey");
+const newMasterKeyInput = document.getElementById("newMasterKey");
+const confirmMasterKeyInput = document.getElementById("confirmMasterKey");
+const changeMasterKeyBtn = document.getElementById("changeMasterKeyBtn");
+const masterKeyMessage = document.getElementById("masterKeyMessage");
+
 /* ── Wire events ────────────────────────────────────────── */
 document.getElementById("saveSettings").addEventListener("click", onSave);
 userKeywords.addEventListener("input", () => renderChips(userKeywords.value, userPreview));
@@ -26,6 +34,7 @@ exportJson.addEventListener("click", () => exportData("json"));
 exportCsv.addEventListener("click", () => exportData("csv"));
 importBtn.addEventListener("click", onImport);
 languageSelect.addEventListener("change", onLanguageChange);
+changeMasterKeyBtn.addEventListener("click", onChangeMasterKey);
 
 // Initialize i18n and then load
 const currentLang = await initI18n();
@@ -307,4 +316,74 @@ function parseCsvLine(line) {
   }
   result.push(current);
   return result;
+}
+
+/* ── Change Master Key ──────────────────────────────────── */
+async function onChangeMasterKey() {
+  const currentPassword = currentMasterKeyInput.value;
+  const newPassword = newMasterKeyInput.value;
+  const confirmPassword = confirmMasterKeyInput.value;
+
+  // Clear previous message
+  masterKeyMessage.textContent = "";
+  masterKeyMessage.className = "msg";
+
+  // Check if a master password is configured
+  const configured = await isMasterPasswordConfigured();
+  if (!configured) {
+    masterKeyMessage.textContent = t("masterKeyChangeFailed");
+    masterKeyMessage.className = "msg error";
+    return;
+  }
+
+  // Validate inputs
+  if (!currentPassword) {
+    masterKeyMessage.textContent = t("masterKeyChangeFailed");
+    masterKeyMessage.className = "msg error";
+    return;
+  }
+
+  if (!newPassword || newPassword.length < 4) {
+    masterKeyMessage.textContent = t("minLengthError");
+    masterKeyMessage.className = "msg error";
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    masterKeyMessage.textContent = t("masterKeyMismatch");
+    masterKeyMessage.className = "msg error";
+    return;
+  }
+
+  if (newPassword === currentPassword) {
+    masterKeyMessage.textContent = t("masterKeySamePassword");
+    masterKeyMessage.className = "msg error";
+    return;
+  }
+
+  // Disable button during operation
+  changeMasterKeyBtn.disabled = true;
+  changeMasterKeyBtn.textContent = "⏳ " + t("changeMasterKeyBtn");
+
+  try {
+    const success = await changeMasterPassword(currentPassword, newPassword);
+
+    if (success) {
+      masterKeyMessage.textContent = t("masterKeyChangeSuccess");
+      masterKeyMessage.className = "msg success";
+      // Clear inputs on success
+      currentMasterKeyInput.value = "";
+      newMasterKeyInput.value = "";
+      confirmMasterKeyInput.value = "";
+    } else {
+      masterKeyMessage.textContent = t("masterKeyChangeFailed");
+      masterKeyMessage.className = "msg error";
+    }
+  } catch (err) {
+    masterKeyMessage.textContent = t("masterKeyChangeFailed") + " " + err.message;
+    masterKeyMessage.className = "msg error";
+  } finally {
+    changeMasterKeyBtn.disabled = false;
+    changeMasterKeyBtn.textContent = t("changeMasterKeyBtn");
+  }
 }
