@@ -191,6 +191,8 @@ h2, h3 { font-size: 16px; font-weight: 600; }
 }
 
 /* ── Vault Gate ──────────────────────────────────────────── */
+.vault-gate[hidden] { display: none !important; }
+
 .vault-gate {
   display: grid;
   gap: 14px;
@@ -301,6 +303,8 @@ h2, h3 { font-size: 16px; font-weight: 600; }
 }
 
 /* ── Search Bar ──────────────────────────────────────────── */
+.search-bar[hidden] { display: none !important; }
+
 .search-bar {
   display: flex;
   align-items: center;
@@ -348,6 +352,8 @@ h2, h3 { font-size: 16px; font-weight: 600; }
 }
 
 /* ── Site List ───────────────────────────────────────────── */
+.site-list[hidden] { display: none !important; }
+
 .site-list {
   display: grid;
   gap: 10px;
