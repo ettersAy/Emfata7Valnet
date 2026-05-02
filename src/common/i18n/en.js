@@ -14,7 +14,7 @@ export default {
   createVaultBtn: "Create Vault",
   vaultHintConfigured: "Enter your master password once daily.",
   vaultHintNew: "Create your master password to encrypt the vault.",
-  minLengthError: "Use at least 4 characters.",
+  minLengthError: "Use at least 12 characters.",
   invalidMasterPassword: "Invalid master password.",
   vaultUnlocked: "Vault unlocked.",
   lockVaultTitle: "Lock vault",
@@ -58,6 +58,7 @@ export default {
   decryptionFailed: "Decryption failed.",
   hostMismatch: "Autofill failed: hostname mismatch.",
   autofillSuccess: "Autofilled successfully.",
+  fillConfirmation: "Autofill credentials on {hostname}?",
   savedSuccess: "Saved!",
 
   /* ── Dialog ────────────────────────────────────────────── */
@@ -95,6 +96,7 @@ export default {
   /* ── Save Settings ─────────────────────────────────────── */
   saveSettingsBtn: "💾 Save Settings",
   saveSuccess: "✅ Settings saved successfully.",
+  settingsUnlockRequired: "⚠ Unlock the vault first from the extension popup to access export, import, and change key.",
 
   /* ── Change Master Key ─────────────────────────────────── */
   changeMasterKeyTitle: "🔐 Change Master Key",
@@ -117,6 +119,7 @@ export default {
   exportJsonBtn: "📦 Export JSON",
   exportCsvBtn: "📊 Export CSV",
   exportNoData: "⚠ No data to export.",
+  exportSecurityWarning: "The exported file contains your ENCRYPTED credentials. Anyone with this file and your master password can decrypt your vault. Keep the file secure and use a strong master password. Continue?",
   exportSuccess: "✅ Exported {count} entries successfully.",
   exportFailed: "❌ Export failed: {message}",
 

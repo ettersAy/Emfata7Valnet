@@ -20,6 +20,10 @@ export async function exportData(format, messageEl) {
       return;
     }
 
+    // Security warning: exported file contains encrypted credentials
+    const confirmed = confirm(t("exportSecurityWarning"));
+    if (!confirmed) return;
+
     const exportPayload = {
       version: "0.2.0",
       exportedAt: new Date().toISOString(),

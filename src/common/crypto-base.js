@@ -7,7 +7,7 @@ import { STORAGE_KEYS } from "./constants.js";
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
-const KDF_ITERATIONS = 210000;
+const KDF_ITERATIONS = 600000; // OWASP 2023 recommendation for PBKDF2-SHA256
 
 /**
  * Convert Uint8Array to base64 string.
@@ -106,6 +106,26 @@ export async function decryptWithKey(key, payload) {
     fromBase64(normalized.value)
   );
   return textDecoder.decode(plain);
+}
+
+/**
+ * Derive a key with a specific iteration count (for migration from old counts).
+ */
+export async function deriveKeyWithIterations(password, salt, iterations) {
+  const material = await crypto.subtle.importKey(
+    "raw",
+    textEncoder.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+    material,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
 }
 
 export { textEncoder, textDecoder, KDF_ITERATIONS };

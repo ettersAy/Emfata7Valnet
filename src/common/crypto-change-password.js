@@ -79,11 +79,10 @@ export async function changeMasterPassword(oldPassword, newPassword) {
   // 7. Save re-encrypted websites back to storage
   await chrome.storage.local.set({ [STORAGE_KEYS.WEBSITES]: finalWebsites });
 
-  // 8. Update the session-stored master password so auto-unlock still works
+  // 8. Mark the session as unlocked for today (date only — no raw password stored)
   try {
     const today = new Date().toISOString().slice(0, 10);
     await chrome.storage.session.set({
-      session_master_password: newPassword,
       session_unlock_date: today
     });
   } catch {

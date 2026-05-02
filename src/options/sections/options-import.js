@@ -38,10 +38,35 @@ export async function onImport(fileInput, messageEl) {
       return;
     }
 
-    // Validate each entry has required fields
+    // Size limit: reject files > 10 MB
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+    if (file.size > MAX_FILE_SIZE) {
+      throw new Error(t("importFileTooLarge") || "File is too large (max 10 MB).");
+    }
+
+    // Entry count limit
+    const MAX_ENTRIES = 10000;
+    if (websites.length > MAX_ENTRIES) {
+      throw new Error(t("importTooManyEntries") || `Too many entries (max ${MAX_ENTRIES}).`);
+    }
+
+    // Validate each entry has required fields and no duplicate IDs
+    const seenIds = new Set();
     for (const w of websites) {
       if (!w.id || !w.url) {
         throw new Error(t("importInvalidEntry"));
+      }
+      if (seenIds.has(w.id)) {
+        throw new Error(t("importDuplicateId") || "Duplicate entry ID found.");
+      }
+      seenIds.add(w.id);
+      // Validate credential structure
+      if (w.credentials && Array.isArray(w.credentials)) {
+        for (const cred of w.credentials) {
+          if (!cred.id || (!cred.loginEncrypted && !cred.passwordEncrypted)) {
+            throw new Error(t("importInvalidCredential") || "Invalid credential entry.");
+          }
+        }
       }
     }
 

@@ -2,7 +2,8 @@ export const STORAGE_KEYS = {
   WEBSITES: "credential_websites",
   FIELD_KEYWORDS: "field_keywords",
   MASTER_SALT: "master_salt",
-  MASTER_VERIFIER: "master_verifier"
+  MASTER_VERIFIER: "master_verifier",
+  INTEGRITY: "credential_integrity"
 };
 
 export const DEFAULT_FIELD_KEYWORDS = {

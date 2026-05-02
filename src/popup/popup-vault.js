@@ -8,9 +8,12 @@ import {
 import { t } from "../common/i18n.js";
 
 const SESSION_KEYS = {
-  MASTER_PASSWORD: "session_master_password",
-  UNLOCK_DATE: "session_unlock_date"
+  UNLOCK_DATE: "session_unlock_date",
+  UNLOCK_TIMESTAMP: "session_unlock_timestamp"
 };
+
+// Maximum session duration: 60 minutes before forced re-lock
+const MAX_SESSION_MINUTES = 60;
 
 const domRefs = {};
 
@@ -18,22 +21,41 @@ export function initVault(refs) {
   Object.assign(domRefs, refs);
 }
 
-/** Try to auto-unlock using stored session (once per day). */
+/**
+ * Try to auto-unlock using the in-memory session key.
+ * The CryptoKey persists in JS heap as long as the service worker /
+ * popup context hasn't been terminated. We only auto-unlock if the
+ * key is still alive AND the unlock is from today.
+ *
+ * The raw master password is NEVER persisted to any storage.
+ */
 export async function trySessionAutoUnlock() {
-  if (isUnlocked()) return true;
+  // If the in-memory key is still alive, check the session timeout
+  if (isUnlocked()) {
+    const data = await chrome.storage.session.get([SESSION_KEYS.UNLOCK_TIMESTAMP]);
+    const unlockTime = data[SESSION_KEYS.UNLOCK_TIMESTAMP];
+    if (unlockTime) {
+      const elapsed = Date.now() - unlockTime;
+      if (elapsed > MAX_SESSION_MINUTES * 60 * 1000) {
+        // Session expired — force lock
+        await lockVault();
+        return false;
+      }
+    }
+    return true;
+  }
 
+  // If the key was evicted (context restart), we must re-prompt.
   const today = new Date().toISOString().slice(0, 10);
-  const data = await chrome.storage.session.get([
-    SESSION_KEYS.MASTER_PASSWORD,
-    SESSION_KEYS.UNLOCK_DATE
-  ]);
+  const data = await chrome.storage.session.get([SESSION_KEYS.UNLOCK_DATE]);
 
-  // Only auto-unlock if the session is from today AND password is stored
-  if (data[SESSION_KEYS.UNLOCK_DATE] !== today || !data[SESSION_KEYS.MASTER_PASSWORD]) {
+  // If there's no unlock date for today, the user must re-enter the password.
+  if (data[SESSION_KEYS.UNLOCK_DATE] !== today) {
     return false;
   }
 
-  return unlockMasterPassword(data[SESSION_KEYS.MASTER_PASSWORD]);
+  // The CryptoKey is gone — force manual unlock.
+  return false;
 }
 
 /** Bootstrap the vault gate UI (configured vs new user). */
@@ -59,7 +81,7 @@ export async function handleUnlock() {
   const { masterPasswordInput, vaultGate, vaultMessage } = domRefs;
   const password = masterPasswordInput.value;
 
-  if (!password || password.length < 4) {
+  if (!password || password.length < 12) {
     vaultMessage.textContent = t("minLengthError");
     return false;
   }
@@ -75,10 +97,11 @@ export async function handleUnlock() {
     return false;
   }
 
+  // Only store unlock metadata — the raw master password is NEVER persisted.
   const today = new Date().toISOString().slice(0, 10);
   await chrome.storage.session.set({
-    [SESSION_KEYS.MASTER_PASSWORD]: password,
-    [SESSION_KEYS.UNLOCK_DATE]: today
+    [SESSION_KEYS.UNLOCK_DATE]: today,
+    [SESSION_KEYS.UNLOCK_TIMESTAMP]: Date.now()
   });
 
   masterPasswordInput.value = "";
@@ -91,8 +114,8 @@ export async function handleUnlock() {
 export async function lockVault() {
   cryptoLock();
   await chrome.storage.session.remove([
-    SESSION_KEYS.MASTER_PASSWORD,
-    SESSION_KEYS.UNLOCK_DATE
+    SESSION_KEYS.UNLOCK_DATE,
+    SESSION_KEYS.UNLOCK_TIMESTAMP
   ]);
 }
 

@@ -58,6 +58,7 @@ export default {
   decryptionFailed: "فشل فك التشفير.",
   hostMismatch: "تعذر الملء التلقائي: اسم المضيف غير متطابق.",
   autofillSuccess: "تم ملء البيانات تلقائياً.",
+  fillConfirmation: "ملء بيانات الدخول على {hostname}؟",
   savedSuccess: "تم الحفظ!",
 
   /* ── Dialog ────────────────────────────────────────────── */
@@ -95,6 +96,7 @@ export default {
   /* ── Save Settings ─────────────────────────────────────── */
   saveSettingsBtn: "💾 حفظ الإعدادات",
   saveSuccess: "✅ تم حفظ الإعدادات بنجاح.",
+  settingsUnlockRequired: "⚠ افتح الخزنة أولاً من النافذة المنبثقة للوصول إلى التصدير والاستيراد وتغيير المفتاح.",
 
   /* ── Change Master Key ─────────────────────────────────── */
   changeMasterKeyTitle: "🔐 تغيير المفتاح الرئيسي",
@@ -108,7 +110,7 @@ export default {
   masterKeyChangeFailed: "❌ فشل تغيير المفتاح الرئيسي. تحقق من المفتاح الحالي.",
   masterKeySamePassword: "⚠ المفتاح الجديد مطابق للمفتاح الحالي.",
   currentMasterKeyPlaceholder: "أدخل المفتاح الرئيسي الحالي",
-  newMasterKeyPlaceholder: "أدخل المفتاح الرئيسي الجديد (4 أحرف على الأقل)",
+  newMasterKeyPlaceholder: "أدخل المفتاح الرئيسي الجديد (12 حرفاً على الأقل)",
   confirmMasterKeyPlaceholder: "أعد إدخال المفتاح الرئيسي الجديد",
 
   /* ── Export ────────────────────────────────────────────── */
@@ -117,6 +119,7 @@ export default {
   exportJsonBtn: "📦 تصدير JSON",
   exportCsvBtn: "📊 تصدير CSV",
   exportNoData: "⚠ لا توجد بيانات للتصدير.",
+  exportSecurityWarning: "الملف المصدر يحتوي على بياناتك المشفرة. أي شخص يحصل على هذا الملف ومفتاحك الرئيسي يمكنه فك تشفير خزنتك. حافظ على الملف آمناً واستخدم مفتاحاً رئيسياً قوياً. متابعة؟",
   exportSuccess: "✅ تم تصدير {count} مدخلات بنجاح.",
   exportFailed: "❌ فشل التصدير: {message}",
 
