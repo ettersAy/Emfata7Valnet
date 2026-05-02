@@ -171,29 +171,44 @@ Key sections:
 ├── manifest.json           # Extension manifest (MV3)
 ├── src/
 │   ├── background/
-│   │   └── service-worker.js
+│   │   ├── service-worker.js
 │   ├── common/
-│   │   ├── constants.js    # STORAGE_KEYS, DEFAULT_FIELD_KEYWORDS
-│   │   ├── crypto.js       # Encryption/decryption (salt + verifier pattern)
-│   │   ├── i18n.js         # Translation module
-│   │   ├── models.js       # Data model helpers
-│   │   └── storage.js      # Chrome storage wrappers
+│   │   ├── constants.js            # STORAGE_KEYS, DEFAULT_FIELD_KEYWORDS
+│   │   ├── crypto.js               # **Barrel** re-exports from crypto-* modules
+│   │   ├── crypto-base.js          # Core primitives (deriveKey, encryptWithKey, base64)
+│   │   ├── crypto-vault.js         # Vault authentication (setup/unlock/lock)
+│   │   ├── crypto-secrets.js       # Encrypt/decrypt individual secrets
+│   │   ├── crypto-change-password.js # Master password change orchestration
+│   │   ├── i18n.js                 # Translation module
+│   │   ├── models.js               # Data model helpers
+│   │   └── storage.js              # Chrome storage wrappers
 │   ├── content/
-│   │   └── autofill-content.js  # Content script for autofill
+│   │   └── autofill-content.js     # Content script for autofill
 │   ├── options/
 │   │   ├── options.css
-│   │   └── options-main.js
+│   │   ├── options-main.js         # **Orchestrator** (wires sub-modules)
+│   │   └── sections/
+│   │       ├── options-csv.js      # CSV utility functions
+│   │       ├── options-export.js   # Export (JSON/CSV)
+│   │       ├── options-import.js   # Import (JSON/CSV)
+│   │       ├── options-keywords.js # Field keyword settings
+│   │       ├── options-language.js # Language selector
+│   │       └── options-master-key.js # Change master password
 │   └── popup/
 │       ├── popup.css
-│       ├── popup-main.js
-│       ├── popup-events.js       # Event delegation (wireEvents)
-│       ├── popup-state.js        # Mutable state object
-│       ├── popup-dom.js          # DOM element creation
-│       ├── popup-render.js       # Rendering and toast
-│       ├── popup-dialog.js       # Dialog management
-│       ├── popup-collapse.js     # Collapse/expand list
-│       ├── popup-drag.js         # Drag-and-drop reorder
-│       └── popup-vault.js        # Vault unlock/lock logic
+│       ├── popup-main.js           # **Orchestrator** (wires sub-modules)
+│       ├── popup-actions.js        # Action handlers (lock, fill, minimize, copy)
+│       ├── popup-bootstrap.js      # Bootstrap/initialization logic
+│       ├── popup-collapse.js       # Collapse/expand list
+│       ├── popup-dialog.js         # Dialog management
+│       ├── popup-dom.js            # DOM element creation
+│       ├── popup-drag.js           # Drag-and-drop reorder
+│       ├── popup-events.js         # Event delegation only (wiring + routing)
+│       ├── popup-inline-editor.js  # Inline editor (show/hide/save)
+│       ├── popup-password-strength.js # Password strength evaluation
+│       ├── popup-render.js         # Rendering and toast
+│       ├── popup-state.js          # Mutable state object
+│       └── popup-vault.js          # Vault unlock/lock logic
 ```
 
 ## Storage Keys
