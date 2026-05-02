@@ -176,6 +176,58 @@ Defined in `src/common/constants.js`:
 - Toast messages use `showToast(listMessage, text, type)` where type is `"success"`, `"warning"`, or `"muted"`
 - Chrome Extension APIs: `chrome.storage.local`, `chrome.tabs`, `chrome.runtime`
 
+## ⚠️ Tool Usage: `git_automate` — Worktree Path Limitation
+
+**`git_automate` (the `github_com_iflow-mcp_git-automate-mcp__git_automate_d712d3b3` tool) resolves relative file paths against a FIXED base directory** (e.g., `/home/AyoubEtters/.cline/worktrees/4cf8b/moussawer/`) rather than the active shell working directory. This means it will fail with `"File not found"` errors when you're working in a different git worktree.
+
+### ✅ Workaround: Use Individual GitHub API Tools
+
+When `git_automate` fails, break the operation into individual steps:
+
+1. **Push files** via `github_com_iflow-mcp_server-github__push_files` (or `github_com_iflow-mcp_server-github__create_or_update_file`)
+2. **Create a PR** via `github_com_iflow-mcp_server-github__create_pull_request`
+
+### Example
+
+```
+# Instead of:
+git_automate({
+  branch: "feat/my-feature",
+  message: "feat: add feature",
+  files: ["path/to/file.js"],
+  base: "main",
+  prTitle: "feat: add feature",
+  prBody: "Description"
+})
+
+# Use:
+# 1. Get current file content (read the file locally)
+# 2. Push changes with individual API:
+push_files({
+  owner: "ettersAy",
+  repo: "Emfata7Valnet",
+  branch: "feat/my-feature",
+  files: [{ path: "path/to/file.js", content: "...file content..." }],
+  message: "feat: add feature"
+})
+# 3. Create PR:
+create_pull_request({
+  owner: "ettersAy",
+  repo: "Emfata7Valnet",
+  title: "feat: add feature",
+  head: "feat/my-feature",
+  base: "main",
+  body: "Description"
+})
+```
+
+### ⚡ Caveats
+- Before pushing, you must create the branch first using `create_branch` tool
+- If you're updating an existing file, you need the file's SHA (get it via `get_file_contents`)
+- If `git_automate` works on the first try (i.e., you're in the expected worktree), use it — it's more convenient
+- If it fails, **do NOT retry with absolute paths** — that will cause GitHub API `tree.path cannot start with a slash` errors
+- Instead, immediately fall back to the individual API tools
+
 ## ⚠️ Tool Usage: `filesystem__directory_tree` Restriction
 
 **NEVER** call `filesystem__directory_tree` on large directories (project root, `.git`, `node_modules`, `dist`, `build`, `doc`, `coverage`, `vendor`, etc.) — it recursively enumerates ALL files and subdirectories into a single JSON structure, causing timeouts or crashes when thousands of files are present.
