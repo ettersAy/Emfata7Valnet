@@ -175,3 +175,24 @@ Defined in `src/common/constants.js`:
 - Try-catch blocks around crypto operations (decryption can fail)
 - Toast messages use `showToast(listMessage, text, type)` where type is `"success"`, `"warning"`, or `"muted"`
 - Chrome Extension APIs: `chrome.storage.local`, `chrome.tabs`, `chrome.runtime`
+
+## ⚠️ Tool Usage: `filesystem__directory_tree` Restriction
+
+**NEVER** call `filesystem__directory_tree` on large directories (project root, `.git`, `node_modules`, `dist`, `build`, `doc`, `coverage`, `vendor`, etc.) — it recursively enumerates ALL files and subdirectories into a single JSON structure, causing timeouts or crashes when thousands of files are present.
+
+### ✅ Safe Alternatives
+
+| Task | Use Instead |
+|------|-------------|
+| **List contents of a single directory** (non-recursive) | `filesystem__list_directory("/path")` |
+| **List with file sizes** (non-recursive) | `filesystem__list_directory_with_sizes("/path")` |
+| **Find files matching a pattern** (recursive but filtered) | `filesystem__search_files("/project/root", "**/*.js")` with `excludePatterns` |
+| **Quick look at project structure** (limited depth) | `filesystem__directory_tree("/project/root", { excludePatterns: ["node_modules/*", ".git/*", "dist/*"] })` with explicit exclusions |
+| **Specific file info** | `filesystem__get_file_info("/path/to/file")` |
+| **Shell-level exploration** (complex queries) | `run_commands({ commands: ["find src -name '*.js' | head -50"] })` |
+
+### ⚡ Golden Rule
+- **First try** `filesystem__list_directory` (flat, one level) to see what's in a directory.
+- **If you need recursive search**, use `filesystem__search_files` with a specific glob pattern — it returns flat paths, not a tree.
+- **Only use `filesystem__directory_tree`** on small, well-known directories (e.g., a single `src/components/` directory you already know is small), and **always** pass `excludePatterns` for any large subdirectories.
+- **Never** call it on the project root, `.git`, `node_modules`, `dist`, `build`, `doc`, or any path you haven't inspected first with `filesystem__list_directory`.
