@@ -176,6 +176,75 @@ Defined in `src/common/constants.js`:
 - Toast messages use `showToast(listMessage, text, type)` where type is `"success"`, `"warning"`, or `"muted"`
 - Chrome Extension APIs: `chrome.storage.local`, `chrome.tabs`, `chrome.runtime`
 
+## ✅ Tool Usage: `git_automate` (IMPROVED — Works Across Worktrees)
+
+The `git_automate` tool (`github_com_iflow-mcp_git-automate-mcp__git_automate_d712d3b3`) has been **fixed and improved** to work across different git worktrees and repos.
+
+### Improvements Made
+| Feature | Before | After |
+|---------|--------|-------|
+| **Worktree support** | Hardcoded to `/moussawer/` only | Auto-detects current git repo at startup |
+| **Repo targeting** | Hardcoded to `moussawer` only | Accepts `owner` + `repo` parameters per-call |
+| **File source** | Filesystem-only (fails if wrong path) | Accepts `fileContents` param to pass base64 content directly |
+| **Project root** | Hardcoded to one path | Accepts `projectRoot` parameter per-call |
+
+### Recommended Usage (Tiered Approach)
+
+**Tier 1 — Try first** (simplest, works if the wrapper detected the right repo):
+```
+git_automate({
+  branch: "feat/my-feature",
+  message: "feat: add feature",
+  files: ["path/to/file.js"],
+  base: "main",
+  prTitle: "feat: add feature",
+  prBody: "Description"
+})
+```
+
+**Tier 2 — If file not found** (use `projectRoot` + `owner` + `repo` to override defaults):
+```
+git_automate({
+  branch: "feat/my-feature",
+  message: "feat: add feature",
+  files: ["path/to/file.js"],
+  base: "main",
+  owner: "ettersAy",
+  repo: "Emfata7Valnet",
+  projectRoot: "/home/AyoubEtters/.cline/worktrees/dc69b/Emfata7Valnet",
+  prTitle: "feat: add feature",
+  prBody: "Description"
+})
+```
+
+**Tier 3 — If filesystem is wrong** (pass file content as base64 directly, bypasses disk reads entirely):
+```
+git_automate({
+  branch: "feat/my-feature",
+  message: "feat: add feature",
+  files: ["path/to/file.js"],
+  base: "main",
+  owner: "ettersAy",
+  repo: "Emfata7Valnet",
+  fileContents: {
+    "path/to/file.js": "Y29uc3QgeCA9IDE7" // base64-encoded content
+  },
+  prTitle: "feat: add feature",
+  prBody: "Description"
+})
+```
+
+**Tier 4 — Fallback** (if `git_automate` still fails for any reason, use individual GitHub API tools):
+1. `create_branch` — create the branch
+2. `push_files` — push files directly
+3. `create_pull_request` — create the PR
+
+### ⚡ Golden Rule
+- **Always try Tier 1 first** — it's the simplest
+- **If you get `File not found`**, use Tier 2 with explicit `projectRoot`, `owner`, `repo`
+- **If paths are tricky**, use Tier 3 with `fileContents` (read file locally, base64 encode, pass inline)
+- **Do NOT use absolute paths in the `files` array** — that will cause GitHub API `tree.path cannot start with a slash` errors
+
 ## ⚠️ Tool Usage: `filesystem__directory_tree` Restriction
 
 **NEVER** call `filesystem__directory_tree` on large directories (project root, `.git`, `node_modules`, `dist`, `build`, `doc`, `coverage`, `vendor`, etc.) — it recursively enumerates ALL files and subdirectories into a single JSON structure, causing timeouts or crashes when thousands of files are present.
