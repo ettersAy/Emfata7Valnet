@@ -12,12 +12,22 @@ import { openDialog } from "./popup-dialog.js";
 import { t } from "../common/i18n.js";
 
 /**
- * Open a website URL in a new tab.
+ * Open a website URL in a new tab or copy label for text entries.
  * @param {Object} website
+ * @param {HTMLElement} openTrigger - The clicked open button element
  * @param {Object} dom - DOM refs with listMessage
  */
-export async function handleOpenSite(website, dom) {
+export async function handleOpenSite(website, openTrigger, dom) {
   const { listMessage } = dom;
+
+  // For text/app entries: copy the label to clipboard
+  const type = openTrigger.dataset.type || website.type;
+  if (type === "text") {
+    await handleCopy(website.url, openTrigger, dom, "copiedUrl");
+    return;
+  }
+
+  // For URL entries: open in new tab
   const normalized = normalizeUrlForOpen(website.url);
   if (!normalized) {
     showToast(listMessage, t("notAValidUrl"), "warning");

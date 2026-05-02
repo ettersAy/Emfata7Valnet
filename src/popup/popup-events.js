@@ -1,10 +1,21 @@
-import { normalizeUrlForOpen, getDisplayUrl, createCredential } from "../common/models.js";
-import { decryptSecret, encryptSecret } from "../common/crypto.js";
-import { getFieldKeywords, saveWebsites } from "../common/storage.js";
+import { createCredential } from "../common/models.js";
+import { encryptSecret } from "../common/crypto.js";
+import { saveWebsites } from "../common/storage.js";
 import { popupState, filteredWebsites } from "./popup-state.js";
 import { renderWebsites, updateEntryCount, showToast } from "./popup-render.js";
-import { openDialog } from "./popup-dialog.js";
 import { createInlineCredentialAdder } from "./popup-dom.js";
+import {
+  handleOpenSite,
+  handleEditSite,
+  handleDeleteSite,
+  handleLockClick,
+  handleFillClick,
+  handleMinimize,
+  handleRestoreMinimized,
+  handleCopy
+} from "./popup-actions.js";
+import { t } from "../common/i18n.js";
+
 /**
  * Popup event delegation module for مفاتيح.
  * Single responsibility: wire DOM event listeners and route events
@@ -19,19 +30,6 @@ import { createInlineCredentialAdder } from "./popup-dom.js";
  * onListClick() identifies button type via CSS class selectors and
  * delegates to the corresponding handler in popup-actions.js.
  */
-import { popupState, filteredWebsites } from "./popup-state.js";
-import { renderWebsites, updateEntryCount } from "./popup-render.js";
-import {
-  handleOpenSite,
-  handleEditSite,
-  handleDeleteSite,
-  handleLockClick,
-  handleFillClick,
-  handleMinimize,
-  handleRestoreMinimized,
-  handleCopy
-} from "./popup-actions.js";
-import { t } from "../common/i18n.js";
 
 const dom = {};
 
@@ -71,27 +69,10 @@ async function onListClick(event) {
   const website = popupState.websites.find((item) => item.id === row.dataset.websiteId);
   if (!website) return;
 
-  // Open site (URL entries) or copy label (app entries)
+  // Route to appropriate action handler based on button class
   const openTrigger = event.target.closest(".open-site");
   if (openTrigger) {
-    const type = openTrigger.dataset.type || website.type;
-    if (type === "text") {
-      // For app/text entries: copy the label to clipboard
-      await navigator.clipboard.writeText(website.url);
-      showCopyIndicator(openTrigger);
-      showToast(listMessage, t("copiedUrl"), "success");
-      return;
-    }
-    // For URL entries: open in new tab
-    const normalized = normalizeUrlForOpen(website.url);
-    if (!normalized) {
-      showToast(listMessage, t("notAValidUrl"), "warning");
-      return;
-    }
-    await chrome.tabs.create({ url: normalized });
-  // Route to appropriate action handler based on button class
-  if (event.target.closest(".open-site")) {
-    await handleOpenSite(website, dom);
+    await handleOpenSite(website, openTrigger, dom);
     return;
   }
 
