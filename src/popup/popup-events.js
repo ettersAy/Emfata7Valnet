@@ -14,6 +14,31 @@ export function initEvents(refs) {
   wireEvents();
 }
 
+/**
+ * Wire all DOM event listeners.
+ *
+ * ── Event Delegation Architecture ──
+ *
+ * This popup uses a container-based event delegation pattern:
+ *
+ *   - Event listeners are attached to specific container elements
+ *     (e.g. `siteList`, `searchInput`), not to the global `document`.
+ *   - Delegation works by using `event.target.closest(selector)` inside
+ *     the handler to identify the originating child element.
+ *   - **IMPORTANT: Event delegation does NOT cross container boundaries.**
+ *     Events that originate from children of one container do NOT bubble
+ *     to listeners on a different container, even if both are siblings
+ *     under the same parent.
+ *
+ * ── Impact ──
+ *
+ * If a new DOM container is added (like `#minimizedList`), it MUST have
+ * its own listeners explicitly attached here in `wireEvents()`. Those
+ * listeners can reuse shared handler functions (e.g. `onListDblClick`),
+ * but the `.addEventListener()` call itself must be made per-container.
+ *
+ * @see popup.html for the sibling containers: #websiteList, #minimizedList
+ */
 function wireEvents() {
   const { siteList, searchInput, entryCount } = dom;
 
@@ -21,7 +46,9 @@ function wireEvents() {
   siteList.addEventListener("dblclick", onListDblClick);
   searchInput.addEventListener("input", onSearch);
 
-  // Also listen for clicks on the minimized list (which sits outside siteList)
+  // ── Separate container: #minimizedList ──
+  // This sits outside #websiteList in the DOM, so listeners on siteList
+  // will NOT catch events from minimized chips. Attach explicitly here.
   const minimizedList = document.getElementById("minimizedList");
   if (minimizedList) {
     minimizedList.addEventListener("dblclick", onListDblClick);
