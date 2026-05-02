@@ -229,6 +229,10 @@ const TRANSLATIONS = {
     fr: "Remplissage automatique réussi.", es: "Autocompletado exitoso.",
     hi: "स्वतः भरा गया।", zh: "自动填充成功。",
   },
+  savedSuccess: {
+    ar: "تم الحفظ!", en: "Saved!", fr: "Enregistré !",
+    es: "¡Guardado!", hi: "सहेजा गया!", zh: "已保存！",
+  },
 
   /* ── Dialog ────────────────────────────────────────────── */
   addSiteTitle: {

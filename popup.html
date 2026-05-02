@@ -52,9 +52,26 @@
       <section id="minimizedList" class="minimized-list" hidden></section>
     </main>
 
+    <!-- Inline Editor (shown when adding a new entry) -->
+    <article id="inlineEditor" class="site-row site-row--editor" hidden>
+      <div class="inline-editor">
+        <span class="inline-editor__icon">🌐</span>
+        <input id="inlineSiteUrl" type="text" class="inline-editor__input" placeholder="example.com" />
+        <span class="inline-editor__sep"></span>
+        <span class="inline-editor__icon">👤</span>
+        <input id="inlineLogin" type="text" class="inline-editor__input" placeholder="user@email.com" />
+        <span class="inline-editor__sep"></span>
+        <span class="inline-editor__icon">🔒</span>
+        <input id="inlinePassword" type="password" class="inline-editor__input" placeholder="••••••••" />
+        <button id="inlineSaveBtn" class="inline-editor__save" type="button" title="Save">✓</button>
+        <button id="inlineCancelBtn" class="inline-editor__cancel" type="button" title="Cancel">✕</button>
+      </div>
+    </article>
+
+    <!-- Edit dialog (for editing existing entries only) -->
     <dialog id="siteDialog" class="modal">
       <form id="siteForm" method="dialog" class="modal__content">
-        <h2 id="siteDialogTitle" data-i18n="addSiteTitle">إضافة موقع</h2>
+        <h2 id="siteDialogTitle" data-i18n="editSiteTitle">تعديل الموقع</h2>
         <label>
           <span data-i18n="siteUrlLabel">الموقع / الاسم المستعار</span>
           <input id="siteUrl" name="url" type="text" required data-i18n-placeholder="siteUrlPlaceholder" placeholder="example.com أو أي ملاحظة" />

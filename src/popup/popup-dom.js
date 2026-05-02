@@ -118,3 +118,41 @@ export function createEmptyState(message, icon = "📭") {
   wrapper.append(iconEl, heading, text);
   return wrapper;
 }
+
+/**
+ * Create an inline editor card for adding a new credential.
+ * Shows three compact inputs on one row: site, login, password.
+ */
+export function createInlineEditor() {
+  const editor = document.getElementById("inlineEditor");
+  editor.hidden = false;
+  editor.style.animation = "none";
+  editor.offsetHeight; // trigger reflow
+  editor.style.animation = "cardIn 0.3s ease both";
+
+  // Clear previous values
+  document.getElementById("inlineSiteUrl").value = "";
+  document.getElementById("inlineLogin").value = "";
+  document.getElementById("inlinePassword").value = "";
+
+  // Try to pre-fill the site URL from the current active tab
+  chrome.tabs?.query({ active: true, currentWindow: true }).then(([tab]) => {
+    if (tab?.url) {
+      try {
+        const url = new URL(tab.url);
+        const hostname = url.hostname.replace(/^www\./, "");
+        document.getElementById("inlineSiteUrl").value = hostname;
+        // Focus the login field since site is pre-filled
+        document.getElementById("inlineLogin").focus();
+      } catch {
+        document.getElementById("inlineSiteUrl").focus();
+      }
+    } else {
+      document.getElementById("inlineSiteUrl").focus();
+    }
+  }).catch(() => {
+    document.getElementById("inlineSiteUrl").focus();
+  });
+
+  return editor;
+}

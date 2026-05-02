@@ -1,12 +1,16 @@
 import { getWebsites } from "../common/storage.js";
 import { popupState, filteredWebsites } from "./popup-state.js";
-import { renderWebsites, updateEntryCount } from "./popup-render.js";
+import { renderWebsites, updateEntryCount, showToast } from "./popup-render.js";
 import { initVault, trySessionAutoUnlock, bootstrapVaultGate, handleUnlock, lockVault } from "./popup-vault.js";
 import { initDialog, openDialog, closeDialog, onSubmit } from "./popup-dialog.js";
 import { initEvents } from "./popup-events.js";
 import { initDrag } from "./popup-drag.js";
 import { initCollapse, collapse as collapseList } from "./popup-collapse.js";
 import { initI18n, t } from "../common/i18n.js";
+import { createWebsite, createCredential } from "../common/models.js";
+import { encryptSecret } from "../common/crypto.js";
+import { saveWebsites } from "../common/storage.js";
+import { createInlineEditor } from "./popup-dom.js";
 
 /* ── DOM refs ───────────────────────────────────────────── */
 const dom = {
@@ -62,10 +66,49 @@ dom.lockVaultBtn.addEventListener("click", async () => {
   await bootstrapVaultGate();
 });
 
-document.getElementById("addSiteBtn").addEventListener("click", () => openDialog());
+document.getElementById("addSiteBtn").addEventListener("click", () => showInlineEditor());
 document.getElementById("openSettingsBtn").addEventListener("click", () => chrome.runtime.openOptionsPage());
 dom.cancelBtn.addEventListener("click", closeDialog);
 dom.siteForm.addEventListener("submit", (e) => onSubmit(e));
+
+// ── Inline Editor ──────────────────────────────────────
+document.getElementById("inlineSaveBtn").addEventListener("click", async () => {
+  await saveFromInlineEditor();
+});
+document.getElementById("inlineCancelBtn").addEventListener("click", hideInlineEditor);
+document.getElementById("inlinePassword").addEventListener("keydown", async (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    await saveFromInlineEditor();
+  }
+});
+document.getElementById("inlineLogin").addEventListener("keydown", async (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    // If password is empty, focus password; else save
+    const pw = document.getElementById("inlinePassword");
+    if (!pw.value) {
+      pw.focus();
+    } else {
+      await saveFromInlineEditor();
+    }
+  }
+});
+document.getElementById("inlineSiteUrl").addEventListener("keydown", async (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    // Move to login
+    document.getElementById("inlineLogin").focus();
+  }
+});
+// Escape to cancel
+document.querySelectorAll("#inlineEditor input").forEach((input) => {
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      hideInlineEditor();
+    }
+  });
+});
 
 // Password visibility toggle in vault gate
 dom.togglePassBtn.addEventListener("click", () => {
@@ -144,4 +187,70 @@ function evaluateStrength(password) {
   if (score === 2) return { strength: "fair", label: t("strengthFair") };
   if (score === 3) return { strength: "good", label: t("strengthGood") };
   return { strength: "strong", label: t("strengthStrong") };
+}
+
+/* ── Inline Editor Functions ──────────────────────────── */
+
+function showInlineEditor() {
+  // Don't show if already editing
+  const existing = document.getElementById("inlineEditor");
+  if (!existing.hidden) return;
+
+  // Hide empty state if present
+  const emptyState = dom.siteList.querySelector(".empty-state");
+  if (emptyState) {
+    emptyState.dataset.wasEmpty = "true";
+    emptyState.hidden = true;
+  }
+  const editor = createInlineEditor();
+  // Insert at the top of the site list (before all children)
+  dom.siteList.prepend(editor);
+}
+
+function hideInlineEditor() {
+  const editor = document.getElementById("inlineEditor");
+  editor.hidden = true;
+  // Move it back to the main container (where it was in the HTML)
+  const main = document.querySelector(".app");
+  main.appendChild(editor);
+  // Restore empty state if needed
+  const emptyState = dom.siteList.querySelector(".empty-state[data-was-empty]");
+  if (emptyState) {
+    emptyState.hidden = false;
+    delete emptyState.dataset.wasEmpty;
+  }
+}
+
+async function saveFromInlineEditor() {
+  const siteUrl = document.getElementById("inlineSiteUrl").value.trim();
+  const login = document.getElementById("inlineLogin").value.trim();
+  const password = document.getElementById("inlinePassword").value.trim();
+
+  if (!siteUrl || !login || !password) {
+    showToast(dom.listMessage, "Please fill in all fields", "warning");
+    return;
+  }
+
+  const loginEncrypted = await encryptSecret(login);
+  const passwordEncrypted = await encryptSecret(password);
+
+  const credential = createCredential({
+    loginEncrypted,
+    passwordEncrypted
+  });
+
+  const website = createWebsite({
+    url: siteUrl,
+    label: siteUrl,
+    credentials: [credential],
+    order: Date.now()
+  });
+
+  popupState.websites.push(website);
+  await saveWebsites(popupState.websites);
+
+  hideInlineEditor();
+  await renderWebsites(filteredWebsites(), dom.siteList);
+  updateEntryCount(popupState.websites.length, filteredWebsites().length, dom.entryCount);
+  showToast(dom.listMessage, t("savedSuccess") || "Saved!", "success");
 }
