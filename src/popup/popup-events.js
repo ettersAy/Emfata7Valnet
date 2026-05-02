@@ -1,4 +1,4 @@
-import { normalizeUrlForOpen } from "../common/models.js";
+import { normalizeUrlForOpen, getDisplayUrl } from "../common/models.js";
 import { decryptSecret } from "../common/crypto.js";
 import { getFieldKeywords, saveWebsites } from "../common/storage.js";
 import { popupState, filteredWebsites } from "./popup-state.js";
@@ -20,6 +20,12 @@ function wireEvents() {
   siteList.addEventListener("click", onListClick);
   siteList.addEventListener("dblclick", onListDblClick);
   searchInput.addEventListener("input", onSearch);
+
+  // Also listen for clicks on the minimized list (which sits outside siteList)
+  const minimizedList = document.getElementById("minimizedList");
+  if (minimizedList) {
+    minimizedList.addEventListener("dblclick", onListDblClick);
+  }
 }
 
 async function onSearch() {
@@ -69,6 +75,12 @@ async function onListClick(event) {
   const lockBtn = event.target.closest(".cred-pair__lock");
   if (lockBtn) {
     await handleLockClick(lockBtn, website);
+    return;
+  }
+
+  // Minimize button
+  if (event.target.closest(".minimize-site")) {
+    handleMinimize(row, website);
     return;
   }
 
@@ -153,8 +165,59 @@ async function handleFillClick(fillBtn, website) {
   showToast(listMessage, t("autofillSuccess"), "success");
 }
 
+/**
+ * Minimize a site row — move it to the minimized section at the bottom.
+ */
+function handleMinimize(row, website) {
+  const { siteList } = dom;
+  let minimizedList = document.getElementById("minimizedList");
+  if (!minimizedList) return;
+
+  // Create a minimized chip element
+  const chip = document.createElement("span");
+  chip.className = "minimized-site";
+  chip.dataset.websiteId = website.id;
+  chip.dataset.minimized = "true";
+  chip.textContent = ` ${getDisplayUrl(website.url)}`;
+
+  // Add a restore hint
+  const hint = document.createElement("span");
+  hint.className = "minimized-site__restore-hint";
+  hint.textContent = " (dbl-click to restore)";
+  chip.appendChild(hint);
+
+  minimizedList.appendChild(chip);
+  minimizedList.hidden = false;
+
+  // Remove from main list
+  row.remove();
+}
+
 async function onListDblClick(event) {
   const { listMessage } = dom;
+
+  // Double-click on minimized chip = restore
+  const minimizedChip = event.target.closest(".minimized-site");
+  if (minimizedChip) {
+    const websiteId = minimizedChip.dataset.websiteId;
+    const website = popupState.websites.find((w) => w.id === websiteId);
+    if (!website) {
+      minimizedChip.remove();
+      return;
+    }
+    // Re-render everything to restore the full row
+    const { renderWebsites, updateEntryCount } = await import("./popup-render.js");
+    const { filteredWebsites } = await import("./popup-state.js");
+    await renderWebsites(filteredWebsites(), dom.siteList);
+    updateEntryCount(popupState.websites.length, filteredWebsites().length, dom.entryCount);
+    // Remove all minimized chips
+    const minimizedList = document.getElementById("minimizedList");
+    if (minimizedList) {
+      minimizedList.innerHTML = "";
+      minimizedList.hidden = true;
+    }
+    return;
+  }
 
   // Double-click on site title = copy URL
   const title = event.target.closest(".open-site");

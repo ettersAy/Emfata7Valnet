@@ -147,6 +147,11 @@ const TRANSLATIONS = {
     fr: "Glisser pour réorganiser", es: "Arrastrar para reordenar",
     hi: "पुनर्क्रमित करने के लिए खींचें", zh: "拖拽以重新排序",
   },
+  minimizeEntryTitle: {
+    ar: "تصغير إلى الأسفل", en: "Minimize to bottom",
+    fr: "Réduire en bas", es: "Minimizar al fondo",
+    hi: "नीचे छोटा करें", zh: "最小化到底部",
+  },
 
   /* ── Credential Pairs ──────────────────────────────────── */
   showPasswordTitle: {

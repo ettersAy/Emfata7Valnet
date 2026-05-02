@@ -37,7 +37,13 @@ export function createSiteRow(website, index, decryptedCredentials = []) {
   remove.textContent = "🗑";
   remove.title = t("deleteEntryTitle");
 
-  top.append(dragHandle, title, edit, remove);
+  const minimize = document.createElement("button");
+  minimize.type = "button";
+  minimize.className = "icon-btn minimize-site";
+  minimize.textContent = "⬇";
+  minimize.title = t("minimizeEntryTitle");
+
+  top.append(dragHandle, title, edit, remove, minimize);
 
   const credWrap = document.createElement("div");
   credWrap.className = "cred-wrap";
