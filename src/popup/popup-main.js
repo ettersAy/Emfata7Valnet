@@ -1,8 +1,10 @@
-import { getWebsites } from "../common/storage.js";
-import { popupState, filteredWebsites } from "./popup-state.js";
-import { renderWebsites, updateEntryCount, showToast } from "./popup-render.js";
-import { initVault, trySessionAutoUnlock, bootstrapVaultGate, handleUnlock, lockVault } from "./popup-vault.js";
-import { initDialog, openDialog, closeDialog, onSubmit } from "./popup-dialog.js";
+/**
+ * Popup — Orchestrator module.
+ * Wires together focused sub-modules, each with a single responsibility.
+ */
+import { initI18n } from "../common/i18n.js";
+import { initVault, lockVault, handleUnlock, bootstrapVaultGate } from "./popup-vault.js";
+import { initDialog, closeDialog, onSubmit } from "./popup-dialog.js";
 import { initEvents } from "./popup-events.js";
 import { initDrag } from "./popup-drag.js";
 import { initCollapse, collapse as collapseList } from "./popup-collapse.js";
@@ -11,6 +13,9 @@ import { createWebsite, createCredential, isUrl } from "../common/models.js";
 import { encryptSecret } from "../common/crypto.js";
 import { saveWebsites } from "../common/storage.js";
 import { createInlineEditor } from "./popup-dom.js";
+import { bootstrap } from "./popup-bootstrap.js";
+import { showInlineEditor, hideInlineEditor, saveFromInlineEditor } from "./popup-inline-editor.js";
+import { wirePasswordStrength } from "./popup-password-strength.js";
 
 /* ── DOM refs ───────────────────────────────────────────── */
 const dom = {
@@ -50,10 +55,16 @@ initEvents(dom);
 initDrag(dom);
 initCollapse(dom);
 
+/* ── Wire password strength meter ────────────────────────── */
+wirePasswordStrength(dom.masterPasswordInput, dom.passwordStrength, dom.strengthFill, dom.strengthLabel);
+
 /* ── Wire top-level events ──────────────────────────────── */
 dom.unlockBtn.addEventListener("click", async () => {
   const ok = await handleUnlock();
-  if (ok) await loadAndRender();
+  if (ok) {
+    const { loadAndRender } = await import("./popup-bootstrap.js");
+    await loadAndRender(dom);
+  }
 });
 
 dom.lockVaultBtn.addEventListener("click", async () => {
@@ -66,46 +77,44 @@ dom.lockVaultBtn.addEventListener("click", async () => {
   await bootstrapVaultGate();
 });
 
-document.getElementById("addSiteBtn").addEventListener("click", () => showInlineEditor());
+document.getElementById("addSiteBtn").addEventListener("click", () => showInlineEditor(dom));
 document.getElementById("openSettingsBtn").addEventListener("click", () => chrome.runtime.openOptionsPage());
 dom.cancelBtn.addEventListener("click", closeDialog);
 dom.siteForm.addEventListener("submit", (e) => onSubmit(e));
 
-// ── Inline Editor ──────────────────────────────────────
+// ── Inline Editor events ──────────────────────────────
 document.getElementById("inlineSaveBtn").addEventListener("click", async () => {
-  await saveFromInlineEditor();
+  await saveFromInlineEditor(dom);
 });
-document.getElementById("inlineCancelBtn").addEventListener("click", hideInlineEditor);
+document.getElementById("inlineCancelBtn").addEventListener("click", () => hideInlineEditor(dom));
+
 document.getElementById("inlinePassword").addEventListener("keydown", async (e) => {
   if (e.key === "Enter") {
     e.preventDefault();
-    await saveFromInlineEditor();
+    await saveFromInlineEditor(dom);
   }
 });
 document.getElementById("inlineLogin").addEventListener("keydown", async (e) => {
   if (e.key === "Enter") {
     e.preventDefault();
-    // If password is empty, focus password; else save
     const pw = document.getElementById("inlinePassword");
     if (!pw.value) {
       pw.focus();
     } else {
-      await saveFromInlineEditor();
+      await saveFromInlineEditor(dom);
     }
   }
 });
 document.getElementById("inlineSiteUrl").addEventListener("keydown", async (e) => {
   if (e.key === "Enter") {
     e.preventDefault();
-    // Move to login
     document.getElementById("inlineLogin").focus();
   }
 });
-// Escape to cancel
 document.querySelectorAll("#inlineEditor input").forEach((input) => {
   input.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      hideInlineEditor();
+      hideInlineEditor(dom);
     }
   });
 });
@@ -114,26 +123,11 @@ document.querySelectorAll("#inlineEditor input").forEach((input) => {
 dom.togglePassBtn.addEventListener("click", () => {
   const isPass = dom.masterPasswordInput.type === "password";
   dom.masterPasswordInput.type = isPass ? "text" : "password";
-  dom.togglePassBtn.textContent = isPass ? "🙈" : "👁";
+  dom.togglePassBtn.textContent = isPass ? "\uD83D\uDE48" : "\uD83D\uDC41";
 });
 
-// Password strength meter
-dom.masterPasswordInput.addEventListener("input", () => {
-  const val = dom.masterPasswordInput.value;
-  if (!val) {
-    dom.passwordStrength.hidden = true;
-    return;
-  }
-  dom.passwordStrength.hidden = false;
-  const { strength, label } = evaluateStrength(val);
-  dom.strengthFill.className = `strength-fill ${strength}`;
-  dom.strengthLabel.textContent = label;
-});
-
-// Collapse button in list (double-click on empty area or custom gesture)
-// We add a small collapse button inside the list area
+// Double-click on empty list area collapses it
 dom.siteList.addEventListener("dblclick", (e) => {
-  // Double-click on empty space in the list collapses it
   if (e.target === dom.siteList || e.target.closest(".site-list")) {
     if (!e.target.closest(".site-row")) {
       collapseList();
@@ -257,3 +251,4 @@ async function saveFromInlineEditor() {
   updateEntryCount(popupState.websites.length, filteredWebsites().length, dom.entryCount);
   showToast(dom.listMessage, t("savedSuccess") || "Saved!", "success");
 }
+await bootstrap(dom);
