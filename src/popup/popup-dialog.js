@@ -2,7 +2,7 @@ import { createWebsite, createCredential } from "../common/models.js";
 import { encryptSecret } from "../common/crypto.js";
 import { popupState, filteredWebsites } from "./popup-state.js";
 import { renderWebsites, updateEntryCount } from "./popup-render.js";
-import { t } from "../common/i18n.js";
+import { t, applyToDocument } from "../common/i18n.js";
 import { saveWebsites } from "../common/storage.js";
 
 const dom = {};
@@ -49,6 +49,8 @@ function addCredentialPair(loginValue = "", passwordValue = "") {
   if (passwordValue) passwordInput.value = passwordValue;
 
   dom.credentialPairs.appendChild(pairDiv);
+  // Apply translations to the newly added dynamic elements
+  applyToDocument();
 }
 
 /**
