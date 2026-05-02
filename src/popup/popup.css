@@ -38,11 +38,21 @@
 
 body {
   margin: 0;
-  min-width: 430px;
-  max-width: 430px;
+  min-width: 480px;
+  max-width: 480px;
   background: var(--bg-deep);
   color: var(--text-primary);
   overflow-x: hidden;
+}
+
+/* Popup entrance animation — increase perceived weight */
+.app {
+  animation: appEntrance 0.3s ease-out;
+}
+
+@keyframes appEntrance {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 body::before {
@@ -847,6 +857,81 @@ input:focus, textarea:focus {
   text-align: center;
   padding: 8px;
   font-size: 13px;
+}
+
+/* ── Open-site type icons ─────────────────────────────────── */
+.open-site--app::before {
+  content: '📱' !important;
+}
+
+/* ── Inline Credential Adder ─────────────────────────────── */
+.cred-adder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  margin-top: 6px;
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius-sm);
+  animation: adderIn 0.2s ease both;
+}
+
+@keyframes adderIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cred-adder input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  font-size: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.cred-adder input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.cred-adder__save,
+.cred-adder__cancel {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  background: transparent;
+}
+
+.cred-adder__save {
+  color: var(--success);
+  background: rgba(52, 211, 153, 0.1);
+}
+
+.cred-adder__save:hover {
+  background: rgba(52, 211, 153, 0.25);
+  transform: scale(1.1);
+}
+
+.cred-adder__cancel {
+  color: var(--text-dim);
+}
+
+.cred-adder__cancel:hover {
+  color: var(--danger);
+  background: rgba(248, 113, 113, 0.1);
 }
 
 /* ── Inline Editor ────────────────────────────────────────── */

@@ -1,5 +1,5 @@
 import { t } from "../common/i18n.js";
-import { getDisplayUrl } from "../common/models.js";
+import { getDisplayUrl, isUrl } from "../common/models.js";
 
 
 export function createSiteRow(website, index, decryptedCredentials = []) {
@@ -16,20 +16,33 @@ export function createSiteRow(website, index, decryptedCredentials = []) {
   dragHandle.textContent = "⠿";
   dragHandle.title = t("dragHandleTitle");
 
+  const urlLike = website.type !== "text" && isUrl(website.url);
+
   const top = document.createElement("div");
   top.className = "site-head";
 
   const title = document.createElement("strong");
   title.textContent = getDisplayUrl(website.url);
   title.className = "open-site";
+  title.dataset.type = website.type || (urlLike ? "url" : "text");
   // Full URL in tooltip, shown on hover
   title.title = website.url;
+  // Prefix icon depends on type
+  if (!urlLike) {
+    title.classList.add("open-site--app");
+  }
 
   const edit = document.createElement("button");
   edit.type = "button";
   edit.className = "icon-btn edit-site";
   edit.textContent = "✏️";
   edit.title = t("editEntryTitle");
+
+  const addCred = document.createElement("button");
+  addCred.type = "button";
+  addCred.className = "icon-btn add-cred-row";
+  addCred.textContent = "🔑";
+  addCred.title = t("addCredentialRowTitle");
 
   const remove = document.createElement("button");
   remove.type = "button";
@@ -43,7 +56,7 @@ export function createSiteRow(website, index, decryptedCredentials = []) {
   minimize.textContent = "⬇";
   minimize.title = t("minimizeEntryTitle");
 
-  top.append(dragHandle, title, edit, remove, minimize);
+  top.append(dragHandle, title, edit, addCred, remove, minimize);
 
   const credWrap = document.createElement("div");
   credWrap.className = "cred-wrap";
@@ -155,4 +168,57 @@ export function createInlineEditor() {
   });
 
   return editor;
+}
+
+/**
+ * Create an inline credential adder form — a small row with login + password fields
+ * that appears below a site's credentials to add another credential pair.
+ */
+export function createInlineCredentialAdder(websiteId) {
+  const container = document.createElement("div");
+  container.className = "cred-adder";
+  container.dataset.websiteId = websiteId;
+
+  const loginInput = document.createElement("input");
+  loginInput.type = "text";
+  loginInput.className = "cred-adder__login";
+  loginInput.placeholder = t("siteLoginPlaceholder");
+
+  const passwordInput = document.createElement("input");
+  passwordInput.type = "password";
+  passwordInput.className = "cred-adder__password";
+  passwordInput.placeholder = t("sitePasswordPlaceholder");
+
+  const saveBtn = document.createElement("button");
+  saveBtn.type = "button";
+  saveBtn.className = "cred-adder__save";
+  saveBtn.textContent = "✓";
+  saveBtn.title = t("saveBtn");
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.className = "cred-adder__cancel";
+  cancelBtn.textContent = "✕";
+  cancelBtn.title = t("cancelBtn");
+
+  container.append(loginInput, passwordInput, saveBtn, cancelBtn);
+
+  // Focus the login field
+  setTimeout(() => loginInput.focus(), 50);
+
+  // Enter key support
+  loginInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      passwordInput.focus();
+    }
+  });
+  passwordInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveBtn.click();
+    }
+  });
+
+  return container;
 }

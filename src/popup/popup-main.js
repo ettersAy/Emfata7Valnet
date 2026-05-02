@@ -8,6 +8,11 @@ import { initDialog, closeDialog, onSubmit } from "./popup-dialog.js";
 import { initEvents } from "./popup-events.js";
 import { initDrag } from "./popup-drag.js";
 import { initCollapse, collapse as collapseList } from "./popup-collapse.js";
+import { initI18n, t } from "../common/i18n.js";
+import { createWebsite, createCredential, isUrl } from "../common/models.js";
+import { encryptSecret } from "../common/crypto.js";
+import { saveWebsites } from "../common/storage.js";
+import { createInlineEditor } from "./popup-dom.js";
 import { bootstrap } from "./popup-bootstrap.js";
 import { showInlineEditor, hideInlineEditor, saveFromInlineEditor } from "./popup-inline-editor.js";
 import { wirePasswordStrength } from "./popup-password-strength.js";
@@ -131,4 +136,119 @@ dom.siteList.addEventListener("dblclick", (e) => {
 });
 
 /* ── Bootstrap ──────────────────────────────────────────── */
+await bootstrap();
+
+async function bootstrap() {
+  await bootstrapVaultGate();
+
+  if (await trySessionAutoUnlock()) {
+    await loadAndRender();
+    return;
+  }
+
+  dom.siteList.hidden = true;
+  dom.searchBar.hidden = true;
+  dom.vaultGate.hidden = false;
+  dom.lockVaultBtn.hidden = true;
+  dom.expandListBtn.hidden = true;
+}
+
+async function loadAndRender() {
+  popupState.websites = await getWebsites();
+  // Sort by order (descending so newest/highest order first)
+  popupState.websites.sort((a, b) => (b.order || 0) - (a.order || 0));
+  popupState.searchQuery = "";
+  dom.searchInput.value = "";
+  await renderWebsites(popupState.websites, dom.siteList);
+  updateEntryCount(popupState.websites.length, popupState.websites.length, dom.entryCount);
+  dom.siteList.hidden = false;
+  dom.searchBar.hidden = false;
+  dom.vaultGate.hidden = true;
+  dom.lockVaultBtn.hidden = false;
+  dom.expandListBtn.hidden = true;
+  popupState.collapsed = false;
+}
+
+function evaluateStrength(password) {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (password.length >= 14) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1) return { strength: "weak", label: t("strengthWeak") };
+  if (score === 2) return { strength: "fair", label: t("strengthFair") };
+  if (score === 3) return { strength: "good", label: t("strengthGood") };
+  return { strength: "strong", label: t("strengthStrong") };
+}
+
+/* ── Inline Editor Functions ──────────────────────────── */
+
+function showInlineEditor() {
+  // Don't show if already editing
+  const existing = document.getElementById("inlineEditor");
+  if (!existing.hidden) return;
+
+  // Hide empty state if present
+  const emptyState = dom.siteList.querySelector(".empty-state");
+  if (emptyState) {
+    emptyState.dataset.wasEmpty = "true";
+    emptyState.hidden = true;
+  }
+  const editor = createInlineEditor();
+  // Insert at the top of the site list (before all children)
+  dom.siteList.prepend(editor);
+}
+
+function hideInlineEditor() {
+  const editor = document.getElementById("inlineEditor");
+  editor.hidden = true;
+  // Move it back to the main container (where it was in the HTML)
+  const main = document.querySelector(".app");
+  main.appendChild(editor);
+  // Restore empty state if needed
+  const emptyState = dom.siteList.querySelector(".empty-state[data-was-empty]");
+  if (emptyState) {
+    emptyState.hidden = false;
+    delete emptyState.dataset.wasEmpty;
+  }
+}
+
+async function saveFromInlineEditor() {
+  const siteUrl = document.getElementById("inlineSiteUrl").value.trim();
+  const login = document.getElementById("inlineLogin").value.trim();
+  const password = document.getElementById("inlinePassword").value.trim();
+
+  if (!siteUrl || !login || !password) {
+    showToast(dom.listMessage, "Please fill in all fields", "warning");
+    return;
+  }
+
+  const loginEncrypted = await encryptSecret(login);
+  const passwordEncrypted = await encryptSecret(password);
+
+  const credential = createCredential({
+    loginEncrypted,
+    passwordEncrypted
+  });
+
+  const type = isUrl(siteUrl) ? "url" : "text";
+
+  const website = createWebsite({
+    url: siteUrl,
+    label: siteUrl,
+    credentials: [credential],
+    type,
+    order: Date.now()
+  });
+
+  popupState.websites.push(website);
+  await saveWebsites(popupState.websites);
+
+  hideInlineEditor();
+  await renderWebsites(filteredWebsites(), dom.siteList);
+  updateEntryCount(popupState.websites.length, filteredWebsites().length, dom.entryCount);
+  showToast(dom.listMessage, t("savedSuccess") || "Saved!", "success");
+}
 await bootstrap(dom);

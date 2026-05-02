@@ -1,8 +1,37 @@
-export function createWebsite({ id = crypto.randomUUID(), url, label, credentials, order }) {
+/**
+ * Detect whether a value looks like a URL (has a domain-like pattern)
+ * vs a plain text label (app name, note, etc.).
+ */
+export function isUrl(value) {
+  if (!value || typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+
+  // Strip protocol prefix for detection
+  const clean = trimmed.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+
+  // Must contain at least one dot + something resembling a TLD (min 2 chars)
+  const dotSepPattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?){1,}$/i;
+  // Also check for IP addresses
+  const ipPattern = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?(\/|$)/;
+
+  return dotSepPattern.test(clean) || ipPattern.test(clean) || /^https?:\/\//i.test(trimmed);
+}
+
+/**
+ * Detect the entry type based on the URL value.
+ * Returns "url" for web addresses, "text" for plain labels (apps, notes).
+ */
+export function detectType(value) {
+  return isUrl(value) ? "url" : "text";
+}
+
+export function createWebsite({ id = crypto.randomUUID(), url, label, credentials, order, type }) {
   return {
     id,
     url: sanitizeAddress(url),
     label: (label || url).trim(),
+    type: type || detectType(url),
     credentials: (credentials || []).map(c => ({
       id: c.id || crypto.randomUUID(),
       loginEncrypted: c.loginEncrypted ?? null,
