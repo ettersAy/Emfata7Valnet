@@ -1,9 +1,10 @@
-import { normalizeUrlForOpen, getDisplayUrl } from "../common/models.js";
-import { decryptSecret } from "../common/crypto.js";
+import { normalizeUrlForOpen, getDisplayUrl, createCredential } from "../common/models.js";
+import { decryptSecret, encryptSecret } from "../common/crypto.js";
 import { getFieldKeywords, saveWebsites } from "../common/storage.js";
 import { popupState, filteredWebsites } from "./popup-state.js";
 import { renderWebsites, updateEntryCount, showToast } from "./popup-render.js";
 import { openDialog } from "./popup-dialog.js";
+import { createInlineCredentialAdder } from "./popup-dom.js";
 import { t } from "../common/i18n.js";
 
 
@@ -71,8 +72,18 @@ async function onListClick(event) {
   const website = popupState.websites.find((item) => item.id === row.dataset.websiteId);
   if (!website) return;
 
-  // Open site
-  if (event.target.closest(".open-site")) {
+  // Open site (URL entries) or copy label (app entries)
+  const openTrigger = event.target.closest(".open-site");
+  if (openTrigger) {
+    const type = openTrigger.dataset.type || website.type;
+    if (type === "text") {
+      // For app/text entries: copy the label to clipboard
+      await navigator.clipboard.writeText(website.url);
+      showCopyIndicator(openTrigger);
+      showToast(listMessage, t("copiedUrl"), "success");
+      return;
+    }
+    // For URL entries: open in new tab
     const normalized = normalizeUrlForOpen(website.url);
     if (!normalized) {
       showToast(listMessage, t("notAValidUrl"), "warning");
@@ -117,6 +128,54 @@ async function onListClick(event) {
     await handleFillClick(fillBtn, website);
     return;
   }
+
+  // Add credential row to existing site
+  const addCredRow = event.target.closest(".add-cred-row");
+  if (addCredRow) {
+    // Check if there's already a cred-adder open on this row
+    const existingAdder = row.querySelector(".cred-adder");
+    if (existingAdder) {
+      existingAdder.remove();
+      return;
+    }
+    const adder = createInlineCredentialAdder(website.id);
+    const credWrap = row.querySelector(".cred-wrap") || row;
+    credWrap.after(adder);
+
+    // Wire save/cancel handlers
+    adder.querySelector(".cred-adder__save").addEventListener("click", async () => {
+      await handleInlineAddCredential(adder, website, row);
+    });
+    adder.querySelector(".cred-adder__cancel").addEventListener("click", () => {
+      adder.remove();
+    });
+    return;
+  }
+}
+
+/**
+ * Handle saving a credential from the inline credential adder.
+ */
+async function handleInlineAddCredential(adder, website, row) {
+  const { listMessage, siteList, entryCount } = dom;
+  const loginVal = adder.querySelector(".cred-adder__login").value.trim();
+  const passwordVal = adder.querySelector(".cred-adder__password").value.trim();
+
+  if (!loginVal || !passwordVal) {
+    showToast(listMessage, "Please fill in both fields", "warning");
+    return;
+  }
+
+  const loginEncrypted = await encryptSecret(loginVal);
+  const passwordEncrypted = await encryptSecret(passwordVal);
+
+  const newCred = createCredential({ loginEncrypted, passwordEncrypted });
+  website.credentials.push(newCred);
+
+  await saveWebsites(popupState.websites);
+  await renderWebsites(filteredWebsites(), siteList);
+  updateEntryCount(popupState.websites.length, filteredWebsites().length, entryCount);
+  showToast(listMessage, t("savedSuccess"), "success");
 }
 
 /**

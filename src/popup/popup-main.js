@@ -7,7 +7,7 @@ import { initEvents } from "./popup-events.js";
 import { initDrag } from "./popup-drag.js";
 import { initCollapse, collapse as collapseList } from "./popup-collapse.js";
 import { initI18n, t } from "../common/i18n.js";
-import { createWebsite, createCredential } from "../common/models.js";
+import { createWebsite, createCredential, isUrl } from "../common/models.js";
 import { encryptSecret } from "../common/crypto.js";
 import { saveWebsites } from "../common/storage.js";
 import { createInlineEditor } from "./popup-dom.js";
@@ -239,10 +239,13 @@ async function saveFromInlineEditor() {
     passwordEncrypted
   });
 
+  const type = isUrl(siteUrl) ? "url" : "text";
+
   const website = createWebsite({
     url: siteUrl,
     label: siteUrl,
     credentials: [credential],
+    type,
     order: Date.now()
   });
 

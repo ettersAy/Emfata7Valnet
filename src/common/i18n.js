@@ -174,6 +174,11 @@ const TRANSLATIONS = {
     ar: "+ إضافة بيانات دخول", en: "+ Add credentials", fr: "+ Ajouter des identifiants",
     es: "+ Agregar credenciales", hi: "+ क्रेडेंशियल जोड़ें", zh: "+ 添加凭据",
   },
+  addCredentialRowTitle: {
+    ar: "إضافة بيانات دخول لهذا الإدخال", en: "Add credentials to this entry",
+    fr: "Ajouter des identifiants à cette entrée", es: "Agregar credenciales a esta entrada",
+    hi: "इस प्रविष्टि में क्रेडेंशियल जोड़ें", zh: "为此条目添加凭据",
+  },
 
   /* ── Toast Messages ────────────────────────────────────── */
   deletedSuccess: {
