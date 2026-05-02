@@ -81,7 +81,7 @@ export async function handleLockClick(lockBtn, website) {
       const reveal = document.createElement("span");
       reveal.className = "cred-pair__password-reveal";
       reveal.textContent = plain;
-      reveal.title = plain;
+      // No title — password must never appear in a tooltip.
       pair.insertBefore(reveal, lockBtn.nextSibling);
       lockBtn.textContent = "\uD83D\uDD13";
       lockBtn.title = t("hidePasswordTitle");
@@ -109,23 +109,42 @@ export async function handleFillClick(fillBtn, website, dom) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) return;
 
-  let username, password;
-  try {
-    username = await decryptSecret(cred.loginEncrypted);
-    password = await decryptSecret(cred.passwordEncrypted);
-  } catch {
-    showToast(listMessage, t("decryptionFailed"), "error");
-    return;
+  // Per-fill confirmation for untrusted sites (client-side UX)
+  const storedHost = new URL(
+    /^https?:\/\//i.test(website.url) ? website.url : `https://${website.url}`
+  ).hostname.replace(/^www\./, "");
+  const { trusted_sites: trustedSites = [] } = await chrome.storage.local.get("trusted_sites");
+
+  if (!trustedSites.includes(storedHost)) {
+    const confirmed = confirm(
+      t("fillConfirmation", { hostname: storedHost }) ||
+      `Autofill credentials on ${storedHost}?`
+    );
+    if (!confirmed) return;
+
+    // Remember this site as trusted
+    trustedSites.push(storedHost);
+    await chrome.storage.local.set({ trusted_sites: trustedSites });
   }
 
-  await chrome.tabs.sendMessage(tab.id, {
-    type: "RUN_AUTOFILL",
+  // Delegate to the service worker for hostname verification, decryption, and fill
+  const response = await chrome.runtime.sendMessage({
+    type: "AUTOFILL_REQUEST",
     payload: {
-      credential: { username, password },
-      fieldKeywords: await getFieldKeywords()
+      tabId: tab.id,
+      websiteUrl: website.url,
+      loginEncrypted: cred.loginEncrypted,
+      passwordEncrypted: cred.passwordEncrypted
     }
   });
-  showToast(listMessage, t("autofillSuccess"), "success");
+
+  if (response?.success) {
+    showToast(listMessage, t("autofillSuccess"), "success");
+  } else if (response?.error === "hostname_mismatch") {
+    showToast(listMessage, t("hostMismatch"), "warning");
+  } else {
+    showToast(listMessage, t("decryptionFailed"), "error");
+  }
 }
 
 /**
@@ -182,11 +201,24 @@ export async function handleRestoreMinimized(minimizedChip, dom) {
  * @param {Object} dom - DOM refs with listMessage
  * @param {string} toastKey - i18n key for the toast message
  */
+let clipboardTimer = null;
+
 export async function handleCopy(text, originEl, dom, toastKey) {
   const { listMessage } = dom;
   await navigator.clipboard.writeText(text);
   showCopyIndicator(originEl);
   showToast(listMessage, t(toastKey), "success");
+
+  // Clear clipboard after 30 seconds
+  clearTimeout(clipboardTimer);
+  clipboardTimer = setTimeout(async () => {
+    try {
+      const current = await navigator.clipboard.readText();
+      if (current === text) {
+        await navigator.clipboard.writeText("");
+      }
+    } catch { /* clipboard may be inaccessible */ }
+  }, 30000);
 }
 
 function showCopyIndicator(el) {
