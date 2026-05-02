@@ -4,8 +4,8 @@ The `git_automate` MCP tool resolves file paths relative to a fixed worktree dir
 
 # Improvement Needed
 
-Document or configure that `git_automate` is unreliable in multi-worktree setups. Prefer using `create_branch` + `push_files` + `create_pull_request` individually for PR creation when in a worktree context.
+fix and improve `git_automate` , some cmd you would not be able to exec ask the user for help to execute the cmd for and provide the result. to make sure your fix works once you have done, update `.clinerules ` to add more instruction to next agent how to use this tool, than test  `git_automate` by pushing `.clinerules ` and creating a new PR, and than ask the user to restart cline and start an other task to see if the agent is able to use it without errors.
 
 # Expected Result
 
-Future AI agents should avoid time lost to failed `git_automate` calls and use the reliable fallback path immediately.
+Future AI agents should be able to use `git_automate` without error
