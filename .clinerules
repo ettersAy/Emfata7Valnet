@@ -1,0 +1,171 @@
+# مفاتيح (Mafati7) — Project Conventions
+
+## Project Overview
+Chrome Extension (Manifest V3) — Secure password manager vault with encrypted credential storage, autofill, multi-language support (i18n), and RTL-first design.
+
+## Branch Naming
+- `feat/<short-description>` — new features (e.g., `feat/inline-credentials-minimize`)
+- `fix/<short-description>` — bug fixes (e.g., `fix/crypto-normalize-payload-format`)
+- `docs/<short-description>` — documentation (e.g., `docs/ai-reflection-improvement-tasks`)
+- `codex/<short-description>` — AI-generated exploration branches
+- Use kebab-case and keep descriptions concise.
+
+## CSS Naming Conventions
+Use BEM-like naming throughout:
+
+### Pattern
+- **Block**: single name, e.g., `.site-row`, `.vault-gate`, `.cred-pair`, `.empty-state`
+- **Element**: block name + `__` + element name, e.g., `.app__header`, `.vault-gate__icon`, `.cred-pair__login`, `.empty-state__icon`
+- **Modifier**: block/element name + `--` + modifier name, e.g., `.primary--glow`, `.btn--outline`
+- **State classes**: use regular class, e.g., `.dragging`, `.show`
+
+### CSS Variables
+Use `--` custom properties in `:root` for all design tokens:
+- Colors: `--bg-*`, `--text-*`, `--border-*`, `--accent-*`, `--danger`, `--success`, `--warning`
+- Radii: `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-pill`
+- Shadows: `--shadow-glow-sm`, `--shadow-glow-md`, `--shadow-elevate`
+
+### Key CSS Files
+- `src/popup/popup.css` — popup UI styles
+- `src/options/options.css` — settings page styles
+
+## i18n (Internationalization)
+
+### Supported Languages
+| Code | Language   | Direction |
+|------|------------|-----------|
+| ar   | العربية    | rtl       |
+| en   | English    | ltr       |
+| fr   | Français   | ltr       |
+| es   | Español    | ltr       |
+| hi   | हिन्दी     | ltr       |
+| zh   | 中文       | ltr       |
+
+### Translation File
+- **Location**: `src/common/i18n.js`
+- All translations live in the `TRANSLATIONS` object with camelCase keys
+- Example key pattern: `appName`, `vaultLocked`, `unlockBtn`, `entriesCount`, `copiedUrl`
+
+### Key Naming
+- Group by feature/section (e.g., `appName`, `vaultLocked`, `entriesCount`, `dialog*`, `export*`, `import*`)
+- Use camelCase
+- For placeholder/contextual keys: `{placeholder}` syntax (e.g., `entriesCount: "{count} entries"`)
+
+### HTML Attributes
+- `data-i18n="keyName"` — translates `textContent`
+- `data-i18n-placeholder="keyName"` — translates `placeholder`
+- `data-i18n-title="keyName"` — translates `title`
+- `data-i18n-value="keyName"` — translates `value`
+- `data-replace-{name}="value"` — for dynamic placeholder replacement
+
+### Usage in JS
+```js
+import { t, initI18n, setLanguage, saveAndApplyLanguage } from "../common/i18n.js";
+t("keyName", { placeholder: "value" });
+```
+
+### Default Language
+The default language is Arabic (`"ar"`). Language preference is stored in `chrome.storage.local` under the key `app_language`.
+
+## Event Delegation Pattern
+
+### Main File
+- `src/popup/popup-events.js`
+
+### Pattern
+1. Export `initEvents(refs)` which stores DOM references and calls `wireEvents()`
+2. `wireEvents()` attaches listeners to parent containers (not individual elements)
+3. Use `event.target.closest(".selector")` to identify which element was clicked
+4. Check for specific action buttons within the row using `event.target.closest()`
+
+### Example
+```js
+function wireEvents() {
+  siteList.addEventListener("click", onListClick);
+  siteList.addEventListener("dblclick", onListDblClick);
+}
+
+async function onListClick(event) {
+  const row = event.target.closest(".site-row");
+  if (!row) return;
+  if (event.target.closest(".open-site")) { /* handle open */ }
+  if (event.target.closest(".edit-site")) { /* handle edit */ }
+}
+```
+
+### Action Buttons Convention
+- `.open-site` — open URL in new tab
+- `.edit-site` — open edit dialog
+- `.delete-site` — delete entry
+- `.cred-pair__lock` — toggle password visibility
+- `.cred-pair__fill` — autofill credentials
+- `.minimize-site` — minimize site row to bottom
+- `.minimized-site` — dblclick to restore
+
+## RTL Support
+
+### Requirements
+- All major layout uses logical properties where possible (`margin-inline-start`, `padding-inline-end`)
+- `[dir="rtl"]` CSS overrides for elements that need explicit RTL behavior
+- Credential data (`cred-pair__login`, `cred-pair__password-reveal`) must stay `direction: ltr` even in RTL mode to preserve login/password text direction
+- `document.documentElement.dir` is set dynamically by `i18n.js` based on the current language
+- Bidi-isolate any LTR content inside RTL layout
+
+### CSS Example
+```css
+[dir="rtl"] .app,
+[dir="rtl"] .vault-gate,
+[dir="rtl"] .modal__content { direction: rtl; text-align: right; }
+
+.cred-pair__login {
+  direction: ltr;
+  text-align: left;
+}
+```
+
+## Project Structure
+```
+├── popup.html              # Popup entry HTML
+├── options.html            # Settings page HTML
+├── manifest.json           # Extension manifest (MV3)
+├── src/
+│   ├── background/
+│   │   └── service-worker.js
+│   ├── common/
+│   │   ├── constants.js    # STORAGE_KEYS, DEFAULT_FIELD_KEYWORDS
+│   │   ├── crypto.js       # Encryption/decryption (salt + verifier pattern)
+│   │   ├── i18n.js         # Translation module
+│   │   ├── models.js       # Data model helpers
+│   │   └── storage.js      # Chrome storage wrappers
+│   ├── content/
+│   │   └── autofill-content.js  # Content script for autofill
+│   ├── options/
+│   │   ├── options.css
+│   │   └── options-main.js
+│   └── popup/
+│       ├── popup.css
+│       ├── popup-main.js
+│       ├── popup-events.js       # Event delegation (wireEvents)
+│       ├── popup-state.js        # Mutable state object
+│       ├── popup-dom.js          # DOM element creation
+│       ├── popup-render.js       # Rendering and toast
+│       ├── popup-dialog.js       # Dialog management
+│       ├── popup-collapse.js     # Collapse/expand list
+│       ├── popup-drag.js         # Drag-and-drop reorder
+│       └── popup-vault.js        # Vault unlock/lock logic
+```
+
+## Storage Keys
+Defined in `src/common/constants.js`:
+- `credential_websites` — encrypted websites list
+- `field_keywords` — autofill field detection keywords
+- `master_salt` — crypto salt
+- `master_verifier` — master password verifier
+- `app_language` — saved language preference
+
+## General Coding Conventions
+- ES modules (`type="module"` in HTML, `import`/`export` in JS)
+- `async/await` for all async operations
+- Try-catch blocks around crypto operations (decryption can fail)
+- Toast messages use `showToast(listMessage, text, type)` where type is `"success"`, `"warning"`, or `"muted"`
+- Chrome Extension APIs: `chrome.storage.local`, `chrome.tabs`, `chrome.runtime`
