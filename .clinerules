@@ -123,6 +123,20 @@ async function onListClick(event) {
   2. OR excludes `draggable` attribute to avoid drag interference
   3. AND verify `onListClick` exits gracefully for unhandled selectors
 
+## 📚 Module Boundaries Reference
+
+For a comprehensive reference on all popup module responsibilities, shared CSS selectors,
+conflict matrix, bootstrap sequence, and CRUD flow conventions, see:
+
+**`doc/popup/MODULE-BOUNDARIES.md`**
+
+Key sections:
+- [Module Dependency Graph](doc/popup/MODULE-BOUNDARIES.md#module-dependency-graph)
+- [Bootstrap & Init Sequence](doc/popup/MODULE-BOUNDARIES.md#bootstrap--init-sequence-popup-mainjs)
+- [Shared CSS Class Selectors — Conflict Matrix](doc/popup/MODULE-BOUNDARIES.md#shared-css-class-selectors--conflict-matrix)
+- [Modules to Verify When Adding New Interactive Card Types](doc/popup/MODULE-BOUNDARIES.md#modules-to-verify-when-adding-new-interactive-card-types)
+- [Common Pitfalls](doc/popup/MODULE-BOUNDARIES.md#common-pitfalls)
+
 ## 🆕 CRUD Flow: Add vs Edit
 - **Adding new entries**: Uses inline editor card (`.site-row--editor`) inserted at top of list — saves on Enter, cancel on Escape
 - **Editing existing entries**: Uses `<dialog>` modal (`#siteDialog`) for complex multi-credential edits
