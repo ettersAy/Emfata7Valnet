@@ -108,6 +108,27 @@ async function onListClick(event) {
 - `.minimize-site` — minimize site row to bottom
 - `.minimized-site` — dblclick to restore
 
+## ⚠️ Critical: `.site-row` Selector Coupling
+
+**The `.site-row` CSS class is shared across THREE modules:**
+- `popup-events.js` — `onListClick()` uses `closest(".site-row")` to find the target website
+- `popup-drag.js` — `onDragStart()` uses `closest(".site-row")` to find draggable elements
+- `popup-dom.js` — `createSiteRow()` assigns `.site-row` class to new cards
+
+### Implications
+- Any element with class `.site-row` (or `.site-row--editor`) inside `#websiteList` will be matched by event and drag handlers
+- `.site-row--editor` (the inline editor) matches `.site-row` CSS selector but has NO `draggable` attribute and NO `data-website-id` — events exit early harmlessly
+- **If you add a new card type**, ensure it either:
+  1. Has `data-website-id` for event handlers to work
+  2. OR excludes `draggable` attribute to avoid drag interference
+  3. AND verify `onListClick` exits gracefully for unhandled selectors
+
+## 🆕 CRUD Flow: Add vs Edit
+- **Adding new entries**: Uses inline editor card (`.site-row--editor`) inserted at top of list — saves on Enter, cancel on Escape
+- **Editing existing entries**: Uses `<dialog>` modal (`#siteDialog`) for complex multi-credential edits
+- The inline editor is defined in HTML as `<article id="inlineEditor">` and moved into `#websiteList` via JS when active
+- Empty state (`.empty-state`) is hidden when editor is shown via `data-was-empty` attribute tracking
+
 ## RTL Support
 
 ### Requirements
